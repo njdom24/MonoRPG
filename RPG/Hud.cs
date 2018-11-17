@@ -1,5 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Input;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,79 +13,130 @@ namespace RPG
     {
         private Texture2D chars;
         private Texture2D borders;
-        private String message;
-        private Point[] locations;
+        private string[] messages;
+        private Point[][] locations;
         private int width;
         private int height;
         private int offsetX;
         private int offsetY;
+        private int posX;
+        private int posY;
         private double timer;
         private int charCount;
+        private int curMessage;
+        private bool visible;
 
-        public Hud(String message, Texture2D chars, Texture2D borders)
+        public Hud(string[] message, Texture2D chars, Texture2D borders, int width = 18, int height = 3, int posX = -1, int posY = -1)
         {
+            this.posX = posX;
+            this.posY = posY;
+            visible = true;
+            curMessage = 0;
             charCount = 0;
             timer = 0;
-            width = 18;
-            height = 3;
-            offsetX = (400 - width * 8) / 2;
-            offsetY = 240 - (height + 2) * 8;
+            this.width = width;
+            this.height = height;
+            if (posX == -1)
+            {
+                offsetX = (400 - width * 8) / 2;
+                offsetY = 240 - (height + 2) * 8;
+            }
+            else
+            {
+                offsetX = 0;
+                offsetY = 0;
+            }
             this.chars = chars;
             this.borders = borders;
-            this.message = message;
+            this.messages = message;
             //message = message.ToUpper();
-            locations = new Point[message.Length];
-            for(int i = 0; i < message.Length; i++)
-            {
-                char letter = message[i];
-                if (letter >= 'A' && letter <= 'J')
-                    locations[i] = new Point(8 * (letter - 'A'), 0);
-                else if (letter >= 'K' && letter <= 'U')
-                    locations[i] = new Point(8 * (letter - 'K'), 8);
-                else if (letter >= 'V' && letter <= 'Z')
-                    locations[i] = new Point(8 * (letter - 'V'), 16);
-                else if (letter >= 'a' && letter <= 'e')
-                    locations[i] = new Point(40 + 8 * (letter - 'a'), 16);
-                else if (letter >= 'f' && letter <= 'o')
-                    locations[i] = new Point(8 * (letter - 'f'), 24);
-                else if (letter >= 'p' && letter <= 'z')
-                    locations[i] = new Point(8 * (letter - 'p'), 32);
-                else if (letter == '-')
-                    locations[i] = new Point(0, 40);
-                else if (letter == '"')
-                    locations[i] = new Point(8, 40);
-                else if (letter == '!')
-                    locations[i] = new Point(16, 40);
-                else if (letter == '?')
-                    locations[i] = new Point(24, 40);
-                else if (letter == '\'')
-                    locations[i] = new Point(32, 40);
-                else if (letter == ',')
-                    locations[i] = new Point(40, 40);
-                else if (letter == '.')
-                    locations[i] = new Point(48, 40);
-                else if (letter == '/')
-                    locations[i] = new Point(56, 40);
-                else if (letter == '<')
-                    locations[i] = new Point(64, 40);
-                else if (letter == '>')
-                    locations[i] = new Point(72, 40);
-                else if (letter >= '0' && letter <= '9')
-                    locations[i] = new Point(8 * ((int)letter - (int)'0'), 48);
-                else
-                    locations[i] = new Point(80, 0);
-
-            }
+            locations = new Point[messages.Length][];//[message.Length];
+            for (int i = 0; i < locations.Length; i++)
+                locations[i] = new Point[messages[i].Length];
+            for(int i = 0; i < messages.Length; i++)
+                for(int j = 0; j < messages[i].Length; j++)
+                {
+                    char letter = message[i][j];
+                    if (letter >= 'A' && letter <= 'J')
+                        locations[i][j] = new Point(8 * (letter - 'A'), 0);
+                    else if (letter >= 'K' && letter <= 'U')
+                        locations[i][j] = new Point(8 * (letter - 'K'), 8);
+                    else if (letter >= 'V' && letter <= 'Z')
+                        locations[i][j] = new Point(8 * (letter - 'V'), 16);
+                    else if (letter >= 'a' && letter <= 'e')
+                        locations[i][j] = new Point(40 + 8 * (letter - 'a'), 16);
+                    else if (letter >= 'f' && letter <= 'o')
+                        locations[i][j] = new Point(8 * (letter - 'f'), 24);
+                    else if (letter >= 'p' && letter <= 'z')
+                        locations[i][j] = new Point(8 * (letter - 'p'), 32);
+                    else if (letter == '-')
+                        locations[i][j] = new Point(0, 40);
+                    else if (letter == '"')
+                        locations[i][j] = new Point(8, 40);
+                    else if (letter == '!')
+                        locations[i][j] = new Point(16, 40);
+                    else if (letter == '?')
+                        locations[i][j] = new Point(24, 40);
+                    else if (letter == '\'')
+                        locations[i][j] = new Point(32, 40);
+                    else if (letter == ',')
+                        locations[i][j] = new Point(40, 40);
+                    else if (letter == '.')
+                        locations[i][j] = new Point(48, 40);
+                    else if (letter == '/')
+                        locations[i][j] = new Point(56, 40);
+                    else if (letter == '<')
+                        locations[i][j] = new Point(64, 40);
+                    else if (letter == '>')
+                        locations[i][j] = new Point(72, 40);
+                    else if (letter >= '0' && letter <= '9')
+                        locations[i][j] = new Point(8 * ((int)letter - (int)'0'), 48);
+                    else
+                        locations[i][j] = new Point(80, 0);
+                }
         }
 
-        public void Update(GameTime gameTime)
+        public void Update(GameTime gameTime, KeyboardState prevState)
         {
-            timer += gameTime.ElapsedGameTime.TotalSeconds;
-            if (timer >= 0.1)
+            if (Keyboard.GetState().IsKeyDown(Keys.Space) && !prevState.IsKeyDown(Keys.Space))
             {
-                timer = 0;
-                if (charCount < message.Length)
-                    charCount++;
+                if (true)
+                {
+                    if (isFinished())// && curMessage < messages.Length - 1)
+                    {
+                        if (curMessage < messages.Length - 1)
+                        {
+                            curMessage++;
+                            charCount = 0;
+                        }
+                        else
+                        {
+                            //close textbox
+                            visible = false;
+                        }
+                    }
+                    else
+                    {
+                        if (charCount < messages[curMessage].Length)
+                        {
+                            //skip text
+                            charCount = messages[curMessage].Length;
+                        }
+                        
+                    }
+                }
+                //spacePressedLastFrame = true;
+            }
+            else
+            {
+                //spacePressedLastFrame = false;
+                timer += gameTime.ElapsedGameTime.TotalSeconds;
+                if (timer >= 0.08)
+                {
+                    timer = 0;
+                    if (charCount < messages[curMessage].Length)
+                        charCount++;
+                }
             }
         }
         private void DrawBlank(SpriteBatch sb)
@@ -120,33 +172,38 @@ namespace RPG
             }
             
         }
-        public Boolean isFinished()
+        public bool isFinished()
         {
-            return charCount == message.Length;
+            return charCount == messages[curMessage].Length;
         }
  
         public void Draw(SpriteBatch sb)
         {
-           
-            DrawBlank(sb);
-            int c = 0;
-            for (int i = 0; i < height; i++)
-                for (int j = 0; j < width; j++)
-                    if (c < charCount)
-                    {
-                        if (message.ElementAt<char>(c) == '\n')
+            if (visible)
+            {
+                DrawBlank(sb);
+                int c = 0;
+                for (int i = 0; i < height; i++)
+                    for (int j = 0; j < width; j++)
+                        if (c < charCount)
                         {
-                            i++;
-                            j = -1;
+                            if (messages[curMessage].ElementAt<char>(c) == '\n')
+                            {
+                                i++;
+                                j = -1;
+                            }
+                            else
+                                sb.Draw(chars, new Rectangle(offsetX + (j + 1) * 8, offsetY + (i + 1) * 8, 8, 8), new Rectangle(locations[curMessage][c].X, locations[curMessage][c].Y, 8, 8), Color.White);
+                            c++;
                         }
-                        else
-                            sb.Draw(chars, new Rectangle(offsetX + (j + 1) * 8, offsetY + (i + 1) * 8, 8, 8), new Rectangle(locations[c].X, locations[c].Y, 8, 8), Color.White);
-                        c++;
-                    }
+                //sb.Draw(chars, new Rectangle(0, 0, 8, 8), new Rectangle(0, 0, 8, 8), Color.White);
+                //sb.Draw(chars, new Rectangle(8, 0, 8, 8), new Rectangle(32, 0, 8, 8), Color.White);
+            }
+        }
 
-
-            //sb.Draw(chars, new Rectangle(0, 0, 8, 8), new Rectangle(0, 0, 8, 8), Color.White);
-            //sb.Draw(chars, new Rectangle(8, 0, 8, 8), new Rectangle(32, 0, 8, 8), Color.White);
+        public bool messageComplete()
+        {
+            return !visible;
         }
     }
 }

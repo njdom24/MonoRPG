@@ -21,14 +21,18 @@ namespace RPG
 {
     class Map
     {
+        private KeyboardState prevState;
         private Hud hud;
         private int[][] colArray;
+        private NPC[] npcs;
         private int tileWidth;
         private int tileHeight;
         private int width;
         private int height;
         private GraphicsDevice g;
         private Texture2D debug;
+        private Texture2D textChars;
+        private Texture2D textBorders;
         private ContentManager cont;
 
         private List<Body> blocks;
@@ -37,8 +41,10 @@ namespace RPG
         private TiledMap tMap;
         private TiledMapRenderer mapRenderer;
 
+        private bool speaking;
         private World world;
         public Player player;
+        //private NPC npc;
 
         private Camera2D camera;
 
@@ -52,7 +58,11 @@ namespace RPG
 
         public Map(GraphicsDevice pDevice, ContentManager content, int pTileWidth, int pTileHeight, int pWidth, int pHeight)
         {
-            hud = new Hud("Undertale is gay,\nand so am I.", content.Load<Texture2D>("Textbox/Chars"), content.Load<Texture2D>("Textbox/Textbox"));
+            textBorders = content.Load<Texture2D>("Textbox/Textbox");
+            textChars = content.Load<Texture2D>("Textbox/Chars");
+            prevState = Keyboard.GetState();
+            hud = new Hud(new string[] { "Undertale is bad,\nand so am I." }, textChars, textBorders);
+            speaking = false;
             blocks = new List<Body>();
             tileWidth = pTileWidth;
             tileHeight = pTileHeight;
@@ -73,7 +83,12 @@ namespace RPG
             Console.WriteLine("Scunt: " + tMap.ObjectLayers.Count);
 
             ParseCollisions();
-            player = new Player(world, content, colArray);
+            player = new Player(world, content, colArray, 16, 23);
+            npcs = new NPC[] {
+                new NPC(world, content, colArray, 2, false, 16, 14, new string[] { "Weebs are worse\nthan fortnite\ngamers.", "Where's the lie?" }),
+                new NPC(world, content, colArray, 0, true, 18, 18, new string[] {"help"}, 4, 1)
+            };
+            //npc = new NPC(world, content, colArray, 2, false, 16, 14, new string[] {"Weebs are worse\nthan fortnite\ngamers.", "Where's the lie?" });
 
             for (int i = 0; i < colArray.Length; i++)
             {
@@ -150,6 +165,8 @@ namespace RPG
             //pSb.Draw(debug, new Rectangle(0, 0, debug.Width, debug.Height), Color.White);
             //mapRenderer.Draw(tMap, camera.GetViewMatrix());
             player.Draw(pSb);
+            foreach (NPC n in npcs)
+                n.Draw(pSb);
             //g.SamplerStates[0] = SamplerState.PointClamp;
 
             Vector2 tilePos = Vector2.Zero;
@@ -158,22 +175,47 @@ namespace RPG
             pSb.End();
 
             pSb.Begin();
-            
-            hud.Draw(pSb);
+            if(speaking)
+                hud.Draw(pSb);
             pSb.End();
         }
 
         public void Update(GameTime gameTime)
         {
-            hud.Update(gameTime);
+            hud.Update(gameTime, prevState);
             HandleInput(gameTime);
             AdjustCamera();
-            world.Step((float)gameTime.ElapsedGameTime.TotalSeconds);
+            
             mapRenderer.Update(tMap, gameTime);
             
-            player.Update(gameTime);
+
+            if (!speaking)
+            {
+                world.Step((float)gameTime.ElapsedGameTime.TotalSeconds);
+                player.Update(gameTime, false);
+                foreach (NPC n in npcs)
+                {
+                    if (player.isStopped() && n.isStopped() && n.checkPlayer(player.GetState(), prevState))
+                    {
+                        speaking = true;
+                        hud = new Hud(n.messages, textChars, textBorders, n.textWidth, n.textHeight);
+                    }
+
+                    n.Update(gameTime);
+                }
+            }
+            else
+            {
+                player.Update(gameTime, true);
+                if (hud.messageComplete())
+                {
+                    speaking = false;
+                }
+            }
+            
 
             //camera.Position = new Vector2(player.body.Position.X - 400 / 2, player.body.Position.Y - 240 / 2 + 16);
+            prevState = Keyboard.GetState();
             
         }
 
@@ -192,22 +234,22 @@ namespace RPG
 
             camera.Position = tempPos;
         }
-        private Boolean TooFarLeft()
+        private bool TooFarLeft()
         {
             return (player.body.Position.X - 400 / 2 < 0);
         }
 
-        private Boolean TooFarRight()
+        private bool TooFarRight()
         {
             return (player.body.Position.X - 400 / 2 + 400 > tMap.WidthInPixels);
         }
 
-        private Boolean TooFarUp()
+        private bool TooFarUp()
         {
             return (player.body.Position.Y - 240 / 2 + 16 < 0);
         }
 
-        private Boolean TooFarDown()
+        private bool TooFarDown()
         {
             return (player.body.Position.Y - 240 / 2 + 16 + 240 > tMap.HeightInPixels);
         }

@@ -30,9 +30,12 @@ namespace RPG
             IsFixedTimeStep = false;
             IsMouseVisible = true;
             Window.IsBorderless = true;
-            Window.Position = new Point(0, 0);
-            manager.PreferredBackBufferWidth = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width/2;
-            manager.PreferredBackBufferHeight = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height/2;
+            Window.Title = "FF";
+
+            int scale = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width / 600;//400 for full, 800 for half
+            Window.Position = new Point(GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width/2 - 200 * scale, GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height / 2 - 120 * scale);
+            manager.PreferredBackBufferWidth = 400*scale;
+            manager.PreferredBackBufferHeight = 240*scale;
 
             Content.RootDirectory = "Content";
         }

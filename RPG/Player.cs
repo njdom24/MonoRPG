@@ -16,12 +16,12 @@ namespace RPG
 {
     class Player
     {
-        private Boolean flipped;
+        private bool flipped;
         private Animation walkLeft;
         private Animation walkUp;
         private Animation walkDown;
         private Animation curAnim;
-        private enum State {Left, Right, Up, Down};
+        public enum State {Left, Right, Up, Down};
         private State prevState;
         private State curState;
         private double timer;
@@ -30,12 +30,14 @@ namespace RPG
         public Body body;
         private int animIndex;
         private int[][] colArray;
+        private int x;
+        private int y;
 
-        private Boolean canMove;
-        private Boolean isMoving;
+        private bool canMove;
+        private bool isMoving;
         private Vector2 finalPos;
 
-        public Player(World world, ContentManager content, int[][] colArray)
+        public Player(World world, ContentManager content, int[][] colArray, int posX, int posY)
         {
             animSpeed = 0.25f;
             isMoving = false;
@@ -46,38 +48,47 @@ namespace RPG
             //body = BodyFactory.CreateRectangle(world, 10, 10, 1, new Vector2(0,0));
             //body.Position = new Vector2(8 * 31, 23*16);
             body.BodyType = BodyType.Kinematic;
-            body.Position = new Vector2(16 * 16, 23 * 16);
+            body.Position = new Vector2(posX * 16, posY * 16);
+            x = posX;
+            y = posY;
+            colArray[y][x] = 2;
+            //body.Position = new Vector2(16 * 16, 14 * 16);
             tex = content.Load<Texture2D>("overworld_jobs");
             timer = 0;
-            prevState = State.Down;
-            curState = State.Down;
+            prevState = State.Up;
+            curState = State.Up;
             walkLeft = new Animation(0, 1);
             walkUp = new Animation(2, 3);
             walkDown = new Animation(4, 5);
             curAnim = walkUp;
         }
 
-        public void Update(GameTime gameTime)
+        public void HandleInput()
+        {
+
+        }
+
+        public void Update(GameTime gameTime, bool paused)
         {
             Vector2 tempPos = new Vector2((int)Math.Round(body.Position.X), (int)Math.Round(body.Position.Y));
             body.Position = tempPos;
 
-            int x = (int)body.Position.X / 16;
-            int y = (int)body.Position.Y / 16;
-
-            if (!isMoving)
+            if (!isMoving && !paused)
             {
                 if (Keyboard.GetState().IsKeyDown(Keys.Right) && x + 1 < colArray[y].Length)
                 {
                     SetState(State.Right);
                     //myMap.Camera.Move(new Vector2(2, 0));
-                    if (colArray[y][x + 1] == 1)
+
+                    if (colArray[y][x + 1] == 1)// || colArray[y][x + 1] == 3)
                         animSpeed = 0.5f;
                     else
                     {
                         animSpeed = 0.25f;
                         body.LinearVelocity = new Vector2(64, 0);
                         finalPos = new Vector2(body.Position.X + 16, body.Position.Y);
+                        colArray[y][x++] = 0;
+                        colArray[y][x] = 2;
                         isMoving = true;
                     }
                 }
@@ -85,13 +96,15 @@ namespace RPG
                 {
                     SetState(State.Left);
                     //myMap.Camera.Move(new Vector2(2, 0));
-                    if (colArray[y][x - 1] == 1)
+                    if (colArray[y][x - 1] == 1 || colArray[y][x - 1] == 3)
                         animSpeed = 0.5f;
                     else
                     {
                         animSpeed = 0.25f;
                         body.LinearVelocity = new Vector2(-64, 0);
                         finalPos = new Vector2(body.Position.X - 16, body.Position.Y);
+                        colArray[y][x--] = 0;
+                        colArray[y][x] = 2;
                         isMoving = true;
                     }
                 }
@@ -99,13 +112,15 @@ namespace RPG
                 {
                     SetState(State.Up);
                     //myMap.Camera.Move(new Vector2(2, 0));
-                    if (colArray[y-1][x] == 1)
+                    if (colArray[y-1][x] == 1 || colArray[y - 1][x] == 3)
                         animSpeed = 0.5f;
                     else
                     {
                         animSpeed = 0.25f;
                         body.LinearVelocity = new Vector2(0, -64);
                         finalPos = new Vector2(body.Position.X, body.Position.Y-16);
+                        colArray[y--][x] = 0;
+                        colArray[y][x] = 2;
                         isMoving = true;
                     }
                 }
@@ -113,13 +128,15 @@ namespace RPG
                 {
                     SetState(State.Down);
                     //myMap.Camera.Move(new Vector2(2, 0));
-                    if (colArray[y + 1][x] == 1)
+                    if (colArray[y + 1][x] == 1 || colArray[y + 1][x] == 3)
                         animSpeed = 0.5f;
                     else
                     {
                         animSpeed = 0.25f;
                         body.LinearVelocity = new Vector2(0, 64);
                         finalPos = new Vector2(body.Position.X, body.Position.Y + 16);
+                        colArray[y++][x] = 0;
+                        colArray[y][x] = 2;
                         isMoving = true;
                     }
                 }
@@ -128,7 +145,6 @@ namespace RPG
             }
             else
             {
-
                 switch(curState)
                 {
                     case State.Left:
@@ -163,7 +179,8 @@ namespace RPG
             }
             tempPos = new Vector2((int)Math.Round(body.Position.X), (int)Math.Round(body.Position.Y));
             body.Position = tempPos;
-            Move(gameTime);
+            if(!paused)
+                Move(gameTime);
         }
 
         public void Move(GameTime gameTime)
@@ -241,10 +258,20 @@ namespace RPG
         public void Draw(SpriteBatch sb)
         {
             //Need to add +1 to animIndex if flipped
-            if(curState == State.Right)
-                sb.Draw(tex, new Rectangle((int)body.Position.X, (int)body.Position.Y, 16, 16), new Rectangle((animIndex+1) * 16, 48,-16,16), Color.White);
+            if (curState == State.Right)
+                sb.Draw(tex, new Rectangle((int)body.Position.X, (int)body.Position.Y, 16, 16), new Rectangle((animIndex+1) * 16, 32,-16,16), Color.White);
             else
-                sb.Draw(tex, new Rectangle((int)body.Position.X, (int)body.Position.Y, 16, 16), new Rectangle(animIndex * 16, 48, 16, 16), Color.White);
+                sb.Draw(tex, new Rectangle((int)body.Position.X, (int)body.Position.Y, 16, 16), new Rectangle(animIndex * 16, 32, 16, 16), Color.White);
+        }
+
+        public State GetState()
+        {
+            return curState;
+        }
+
+        public bool isStopped()
+        {
+            return !isMoving;
         }
     }
 }
