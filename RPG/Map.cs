@@ -21,6 +21,8 @@ namespace RPG
 {
     class Map
     {
+        private Effect effect;
+
         private KeyboardState prevState;
         private Hud hud;
         private int[][] colArray;
@@ -33,6 +35,7 @@ namespace RPG
         private Texture2D debug;
         private Texture2D textChars;
         private Texture2D textBorders;
+        //private Texture2D light;
         private ContentManager cont;
 
         private List<Body> blocks;
@@ -58,6 +61,9 @@ namespace RPG
 
         public Map(GraphicsDevice pDevice, ContentManager content, int pTileWidth, int pTileHeight, int pWidth, int pHeight)
         {
+            //light = content.Load<Texture2D>("lightmask");
+            effect = content.Load<Effect>("File");
+            //effect.Parameters["lightMask"].SetValue(light);
             textBorders = content.Load<Texture2D>("Textbox/Textbox");
             textChars = content.Load<Texture2D>("Textbox/Chars");
             prevState = Keyboard.GetState();
@@ -160,7 +166,8 @@ namespace RPG
         public void Draw(SpriteBatch pSb)
         {
             mapRenderer.Draw(tMap, camera.GetViewMatrix());
-            pSb.Begin(transformMatrix: camera.GetViewMatrix());
+            pSb.Begin(transformMatrix: camera.GetViewMatrix(), sortMode: SpriteSortMode.Deferred);//SpriteSortMode.Immediate required for pixel shader
+            
             //pSb.Begin();
             //pSb.Draw(debug, new Rectangle(0, 0, debug.Width, debug.Height), Color.White);
             //mapRenderer.Draw(tMap, camera.GetViewMatrix());
@@ -174,8 +181,9 @@ namespace RPG
             //DrawDebug(pSb);
             pSb.End();
 
-            pSb.Begin();
-            if(speaking)
+            pSb.Begin(sortMode: SpriteSortMode.Immediate);
+            effect.CurrentTechnique.Passes[1].Apply();
+            if (speaking)
                 hud.Draw(pSb);
             pSb.End();
         }

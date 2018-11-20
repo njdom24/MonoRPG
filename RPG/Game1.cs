@@ -18,15 +18,18 @@ namespace RPG
         
         private GraphicsDeviceManager manager;
         private Map myMap;
+        private Battle battle;
         private SpriteBatch sb;
         private SpriteBatch render;
         private RenderTarget2D scene;
-        
+        //private Texture2D light;
+
         //private Texture2D tileset;
 
         public Game1()
         {
             manager = new GraphicsDeviceManager(this);
+            manager.GraphicsProfile = GraphicsProfile.HiDef;
             IsFixedTimeStep = false;
             IsMouseVisible = true;
             Window.IsBorderless = true;
@@ -47,15 +50,22 @@ namespace RPG
         /// </summary>
         protected override void Initialize()
         {
+            //GraphicsDevice.GraphicsProfile = GraphicsProfile.HiDef;
+            
             PresentationParameters pp = GraphicsDevice.PresentationParameters;
             scene = new RenderTarget2D(GraphicsDevice, 400, 240, false, SurfaceFormat.Color, DepthFormat.None, pp.MultiSampleCount, RenderTargetUsage.DiscardContents);
             myMap = new Map(GraphicsDevice, Content, 16, 16, 10, 10);
+            battle = new Battle(Content);
             sb = new SpriteBatch(GraphicsDevice);
             render = new SpriteBatch(GraphicsDevice);
 
             
             //tileset = Content.Load<Texture2D>("Corneria_gutter");
             base.Initialize();
+
+            //light = Content.Load<Texture2D>("lightmask");
+            //effect = Content.Load<Effect>("File");
+            //effect.Parameters["lightMask"].SetValue(light);
         }
 
         /// <summary>
@@ -92,17 +102,19 @@ namespace RPG
 
             if (Keyboard.GetState().IsKeyDown(Keys.B))
             {
-
+                Content.Unload();
+                //Content = null;
+                Content = new Microsoft.Xna.Framework.Content.ContentManager(this.Services);
+                Content.RootDirectory = "Content";
+                myMap = new Map(GraphicsDevice, Content, 16, 16, 10, 10);
             }
 
         }
         protected override void Update(GameTime gameTime)
         {
             HandleInput(gameTime);
-            myMap.Update(gameTime);
-            
-
-            // TODO: Add your update logic here
+            //myMap.Update(gameTime);
+            battle.Update(gameTime);
 
             base.Update(gameTime);
         }
@@ -117,25 +129,26 @@ namespace RPG
             //GraphicsDevice.Clear(Color.CornflowerBlue);
             GraphicsDevice.SamplerStates[0] = SamplerState.PointClamp;
 
-            myMap.Draw(render);
-
+            //myMap.Draw(render);
+            battle.Draw(sb);
             sb.Begin();
+            
             //sb.Draw(tx, new Rectangle(0, 0, tx.Width, tx.Height), Color.White);
             //DrawLayer(0, sb);
             sb.End();
             GraphicsDevice.SetRenderTarget(null);
 
             //sb.Begin();
-            sb.Begin();
-            sb.Draw(scene, Vector2.Zero);
+            //sb.Begin();
+            //sb.Draw(scene, Vector2.Zero);
 
-            sb.End();
+            //sb.End();
 
             scaleToDisplay();
 
             // TODO: Add your drawing code here
 
-            base.Draw(gameTime);
+            //base.Draw(gameTime);
         }
 
         private void scaleToDisplay()

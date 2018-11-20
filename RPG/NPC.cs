@@ -79,9 +79,9 @@ namespace RPG
 
             if (vertical)
             {
-                prevState = State.Up;
-                curState = State.Up;
-                curAnim = walkUp;
+                prevState = State.Down;
+                curState = State.Down;
+                curAnim = walkDown;
             }
             else
             {
