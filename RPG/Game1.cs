@@ -55,7 +55,7 @@ namespace RPG
             PresentationParameters pp = GraphicsDevice.PresentationParameters;
             scene = new RenderTarget2D(GraphicsDevice, 400, 240, false, SurfaceFormat.Color, DepthFormat.None, pp.MultiSampleCount, RenderTargetUsage.DiscardContents);
             myMap = new Map(GraphicsDevice, Content, 16, 16, 10, 10);
-            battle = new Battle(Content);
+            battle = new Battle(Content, scene, GraphicsDevice, new RenderTarget2D(GraphicsDevice, 400, 240, false, SurfaceFormat.Color, DepthFormat.None, pp.MultiSampleCount, RenderTargetUsage.DiscardContents));//if things break, look here
             sb = new SpriteBatch(GraphicsDevice);
             render = new SpriteBatch(GraphicsDevice);
 
@@ -127,7 +127,7 @@ namespace RPG
         {
             GraphicsDevice.SetRenderTarget(scene);
             //GraphicsDevice.Clear(Color.CornflowerBlue);
-            GraphicsDevice.SamplerStates[0] = SamplerState.PointClamp;
+            GraphicsDevice.SamplerStates[0] = SamplerState.PointWrap;
 
             //myMap.Draw(render);
             battle.Draw(sb);
