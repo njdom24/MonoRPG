@@ -6,6 +6,7 @@ float4 VerticalStretch(float4 pos : SV_POSITION, float4 color1 : COLOR0, float2 
 	texCoord.y = texCoord.y + 0.4*sin(texCoord.y + time * 1);
 	float4 color = tex2D(s0, texCoord);
 	
+	
 	return color;
 }
 
@@ -17,9 +18,17 @@ float4 HorizontalStretch(float4 pos : SV_POSITION, float4 color1 : COLOR0, float
 	return color;
 }
 
-float4 Scroll(float4 pos : SV_POSITION, float4 color1 : COLOR0, float2 texCoord : TEXCOORD0) : SV_TARGET0
+float4 HorizontalScroll(float4 pos : SV_POSITION, float4 color1 : COLOR0, float2 texCoord : TEXCOORD0) : SV_TARGET0
 {
-	texCoord.x = texCoord.x + time/4;
+	texCoord.x = texCoord.x + time*0.25;
+	float4 color = tex2D(s0, texCoord);
+
+	return color;
+}
+
+float4 VerticalScroll(float4 pos : SV_POSITION, float4 color1 : COLOR0, float2 texCoord : TEXCOORD0) : SV_TARGET0
+{
+	texCoord.y = texCoord.y + time * 0.25;
 	float4 color = tex2D(s0, texCoord);
 
 	return color;
@@ -27,7 +36,8 @@ float4 Scroll(float4 pos : SV_POSITION, float4 color1 : COLOR0, float2 texCoord 
 
 float4 SineWave(float4 pos : SV_POSITION, float4 color1 : COLOR0, float2 texCoord : TEXCOORD0) : SV_TARGET0
 {
-	texCoord.y = texCoord.y + 0.2*sin(10*texCoord.x + time*2)+0.1;
+	if(texCoord.y % 0.1 != 0)
+		texCoord.y = texCoord.y + 0.2*sin(10*texCoord.x + time*2)+0.1;
 	float4 color = tex2D(s0, texCoord);
 
 	return color;
@@ -71,14 +81,14 @@ technique Technique1
 {
     pass Pass1
     {
-        PixelShader = compile ps_5_0 VerticalStretch();
+        PixelShader = compile ps_5_0 HorizontalStretch();
     }
 	pass Pass2
 	{
-		PixelShader = compile ps_5_0 HorizontalSineWave();
+		PixelShader = compile ps_5_0 SineWave();
 	}
 	pass Pass3
 	{
-		PixelShader = compile ps_5_0 Scroll();
+		PixelShader = compile ps_5_0 VerticalScroll();
 	}
 }

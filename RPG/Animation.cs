@@ -6,40 +6,40 @@ using System.Threading.Tasks;
 
 namespace RPG
 {
-    class Animation
-    {
-        private int start;
-        private int end;
+	class Animation//Assumes the standing animation is the second frame of the walking animation
+	{
+		private int start;
+		private int end;
 
-        private int curFrame;
+		private int curFrame;
 
-        public Animation(int start, int end)
-        {
-            this.start = start;
-            this.end = end;
-            curFrame = end;
-        }
+		public Animation(int start, int end, bool startEnd = false)
+		{
+			this.start = start;
+			this.end = end;
+			curFrame = end;
+		}
 
-        public void advanceFrame()
-        {
-            curFrame++;
-            if (curFrame > end)
-                curFrame = start;
-        }
+		public void advanceFrame()
+		{
+			curFrame++;
+			if (curFrame > end)
+				curFrame = start;
+		}
 
-        public int getFrame()
-        {
-            return curFrame;
-        }
+		public int getFrame()
+		{
+			return curFrame;
+		}
 
-        public void resetStart()
-        {
-            curFrame = start;
-        }
+		public void resetStart()
+		{
+			curFrame = start;
+		}
 
-        public void resetEnd()
-        {
-            curFrame = end;
-        }
-    }
+		public void resetEnd()
+		{
+			curFrame = end;
+		}
+	}
 }

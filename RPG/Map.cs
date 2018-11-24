@@ -19,11 +19,11 @@ using System.Threading.Tasks;
 
 namespace RPG
 {
-    class Map
+    class Map : Screen
     {
         private Effect effect;
 
-        private KeyboardState prevState;
+        private KeyboardState prevState;//used by both npcs and textboxes
         private Hud hud;
         private int[][] colArray;
         private NPC[] npcs;
@@ -33,8 +33,6 @@ namespace RPG
         private int height;
         private GraphicsDevice g;
         private Texture2D debug;
-        private Texture2D textChars;
-        private Texture2D textBorders;
         //private Texture2D light;
         private ContentManager cont;
 
@@ -64,10 +62,8 @@ namespace RPG
             //light = content.Load<Texture2D>("lightmask");
             effect = content.Load<Effect>("File");
             //effect.Parameters["lightMask"].SetValue(light);
-            textBorders = content.Load<Texture2D>("Textbox/Textbox");
-            textChars = content.Load<Texture2D>("Textbox/Chars");
             prevState = Keyboard.GetState();
-            hud = new Hud(new string[] { "Undertale is bad,\nand so am I." }, textChars, textBorders);
+            hud = new Hud(new string[] { "Undertale is bad,\nand so am I." }, content);
             speaking = false;
             blocks = new List<Body>();
             tileWidth = pTileWidth;
@@ -111,7 +107,8 @@ namespace RPG
         }
         public void HandleInput(GameTime gameTime)
         {
-            
+			if (Keyboard.GetState().IsKeyDown(Keys.A) && prevState.IsKeyUp(Keys.A))
+				hud.finishMessage();
         }
         private void CheckCollisions()
         {
@@ -163,7 +160,7 @@ namespace RPG
             }
         }
 
-        public void Draw(SpriteBatch pSb)
+        void Screen.Draw(SpriteBatch pSb)
         {
             mapRenderer.Draw(tMap, camera.GetViewMatrix());
             pSb.Begin(transformMatrix: camera.GetViewMatrix(), sortMode: SpriteSortMode.Deferred);//SpriteSortMode.Immediate required for pixel shader
@@ -188,7 +185,7 @@ namespace RPG
             pSb.End();
         }
 
-        public void Update(GameTime gameTime)
+        void Screen.Update(GameTime gameTime)
         {
             hud.Update(gameTime, prevState);
             HandleInput(gameTime);
@@ -206,7 +203,7 @@ namespace RPG
                     if (player.isStopped() && n.isStopped() && n.checkPlayer(player.GetState(), prevState))
                     {
                         speaking = true;
-                        hud = new Hud(n.messages, textChars, textBorders, n.textWidth, n.textHeight);
+                        hud = new Hud(n.messages, cont, n.textWidth, n.textHeight);
                     }
 
                     n.Update(gameTime);

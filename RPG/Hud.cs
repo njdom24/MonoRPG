@@ -1,4 +1,5 @@
 ﻿using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using System;
@@ -25,9 +26,11 @@ namespace RPG
         private int charCount;
         private int curMessage;
         private bool visible;
+		private bool canClose;
 
-        public Hud(string[] message, Texture2D chars, Texture2D borders, int width = 18, int height = 3, int posX = -1, int posY = -1)
+        public Hud(string[] message, ContentManager content, int width = 18, int height = 3, int posX = -1, int posY = -1, bool canClose = true)
         {
+			this.canClose = canClose;
             this.posX = posX;
             this.posY = posY;
             visible = true;
@@ -43,11 +46,11 @@ namespace RPG
             }
             else
             {
-                offsetX = 0;
-                offsetY = 0;
+                offsetX = posX;
+                offsetY = posY;
             }
-            this.chars = chars;
-            this.borders = borders;
+            this.chars = content.Load<Texture2D>("Textbox/Chars");
+            this.borders = content.Load<Texture2D>("Textbox/Textbox");
             this.messages = message;
             //message = message.ToUpper();
             locations = new Point[messages.Length][];//[message.Length];
@@ -96,7 +99,21 @@ namespace RPG
                 }
         }
 
-        public void Update(GameTime gameTime, KeyboardState prevState)
+		public void finishMessage()
+		{
+			//curMessage = messages.Length - 1;
+			charCount = messages[curMessage].Length;
+			//visible = !canClose;
+		}
+
+		public void finishText()
+		{
+			curMessage = messages.Length - 1;
+			charCount = messages[curMessage].Length;
+			visible = !canClose;
+		}
+
+		public void Update(GameTime gameTime, KeyboardState prevState)
         {
             if (Keyboard.GetState().IsKeyDown(Keys.Space) && !prevState.IsKeyDown(Keys.Space))
             {
@@ -106,13 +123,14 @@ namespace RPG
                     {
                         if (curMessage < messages.Length - 1)
                         {
+							//advance message
                             curMessage++;
                             charCount = 0;
                         }
                         else
                         {
                             //close textbox
-                            visible = false;
+                            visible = !canClose;
                         }
                     }
                     else
@@ -205,5 +223,10 @@ namespace RPG
         {
             return !visible;
         }
+
+		public int getHeight()
+		{
+			return height * 8;
+		}
     }
 }
