@@ -44,6 +44,18 @@
 /processorParam:DebugMode=Auto
 /build:Battle/BattleBG.fx
 
+#begin Battle/BG.PNG
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:Battle/BG.PNG
+
 #begin Battle/Enemies/Knight.png
 /importer:TextureImporter
 /processor:TextureProcessor
@@ -104,11 +116,35 @@
 /processorParam:TextureFormat=Color
 /build:Battle/Icons/BorderSmall.png
 
+#begin Battle/Icons/HitMarker.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:Battle/Icons/HitMarker.png
+
 #begin Battle/Icons/IconChange.fx
 /importer:EffectImporter
 /processor:EffectProcessor
 /processorParam:DebugMode=Auto
 /build:Battle/Icons/IconChange.fx
+
+#begin Battle/Icons/MusicNote.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:Battle/Icons/MusicNote.png
 
 #begin Battle/Icons/Run.png
 /importer:TextureImporter
@@ -134,6 +170,18 @@
 /processorParam:TextureFormat=Color
 /build:Battle/Icons/Spells.png
 
+#begin Battle/image.jpg
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:Battle/image.jpg
+
 #begin Battle/layer.png
 /importer:TextureImporter
 /processor:TextureProcessor
@@ -145,6 +193,18 @@
 /processorParam:MakeSquare=False
 /processorParam:TextureFormat=Color
 /build:Battle/layer.png
+
+#begin Battle/ManiMani.gif
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:Battle/ManiMani.gif
 
 #begin Battle/Yellow.PNG
 /importer:TextureImporter

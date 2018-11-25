@@ -47,15 +47,15 @@ namespace RPG
 		public Battle(ContentManager contentManager, RenderTarget2D final, GraphicsDevice graphicsDevice, PresentationParameters pp)
 		{
 			combatTimer = 0;
-			threshHold = 0.1;
+			threshHold = 0.15;
 			combatIndicator = contentManager.Load<Texture2D>("Battle/Icons/Attack");
-			secondsPerBeat = 0.8f;
+			secondsPerBeat = 0.6f;
 			world = new World(new Vector2(0, 0));
 			waiter = null;
 			options = new Icon[] { new Icon(contentManager, "Attack"), new Icon(contentManager, "Bag"), new Icon(contentManager, "Spells"), new Icon(contentManager, "Run") };
 			blackRect = new Texture2D(graphicsDevice, 1, 1);
 			blackRect.SetData(new Color[] { Color.Black });
-			knight = new Enemy(contentManager.Load<Texture2D>("Battle/Enemies/Knight"), world, secondsPerBeat, threshHold);
+			knight = new Enemy(contentManager.Load<Texture2D>("Battle/Enemies/Knight"), contentManager.Load<Texture2D>("Battle/Icons/MusicNote"), contentManager.Load<Texture2D>("Battle/Icons/HitMarker"), world, secondsPerBeat, threshHold);
 			MultiSampleCount = pp.MultiSampleCount;
 			firstEffect = new RenderTarget2D(graphicsDevice, 400, 240, false, SurfaceFormat.Color, DepthFormat.None, MultiSampleCount, RenderTargetUsage.DiscardContents);
 			secondEffect = new RenderTarget2D(graphicsDevice, 400, 240, false, SurfaceFormat.Color, DepthFormat.None, MultiSampleCount, RenderTargetUsage.DiscardContents);
@@ -63,7 +63,7 @@ namespace RPG
 			content = contentManager;
 			prevState = Keyboard.GetState();
 			selector = new Selector(4);
-			background = contentManager.Load<Texture2D>("Battle/BackgroundL");
+			background = contentManager.Load<Texture2D>("Battle/BG");
 			background2 = content.Load<Texture2D>("Battle/Yellow");
 			effect = contentManager.Load<Effect>("Battle/BattleBG");
 			bgTimer = 0;
@@ -118,7 +118,7 @@ namespace RPG
 			sb.Begin();
 
 			sb.Draw(comboEffect, new Rectangle(0, 0, 400, 240), Color.White);
-			sb.Draw(secondEffect, new Rectangle(0, 0, 400, 240), Color.White * 0.5f);
+			sb.Draw(secondEffect, new Rectangle(0, 0, 400, 240), Color.White * 0.25f);
 			
 			sb.End();
 		}
@@ -151,7 +151,7 @@ namespace RPG
 			DrawHud(sb);
 
 			sb.Begin();
-			knight.Draw(sb, offsetHeightTop, offsetHeightBottom);
+			knight.Draw(sb, bgTimer, offsetHeightTop, offsetHeightBottom);
 			text.Draw(sb);
 			sb.End();
 			
@@ -159,6 +159,7 @@ namespace RPG
 
 		void Screen.Update(GameTime gameTime)
 		{
+			knight.Update(gameTime);
 			world.Step((float)gameTime.ElapsedGameTime.TotalSeconds);
 			combatTimer += gameTime.ElapsedGameTime.TotalSeconds;
 			commandName.finishMessage();
@@ -196,7 +197,7 @@ namespace RPG
 				{
 					knight.TakeDamage(5, combatTimer);
 					waiter = knight;
-					text = new Hud(new string[] { "Knight takes 1 damage!\nKnight has " + knight.health + " health!" }, content, 48, 3, 0, 240 - (5 * 8), canClose: true);
+					text = new Hud(new string[] { "Knight has " + knight.health + " health!" }, content, 48, 3, 0, 240 - (5 * 8), canClose: true);
 				}
 			}
 		}
@@ -204,7 +205,7 @@ namespace RPG
 		private void UpdateBackground(GameTime gameTime)
 		{
 			bgTimer += gameTime.ElapsedGameTime.TotalSeconds;
-			if (bgTimer > Math.PI)
+			if (bgTimer > Math.PI * 2)
 				bgTimer -= 0;
 			effect.Parameters["time"].SetValue((float)bgTimer);
 		}
