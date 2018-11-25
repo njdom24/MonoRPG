@@ -50,7 +50,7 @@ namespace RPG
 			threshHold = 0.15;
 			combatIndicator = contentManager.Load<Texture2D>("Battle/Icons/Attack");
 			secondsPerBeat = 0.6f;
-			world = new World(new Vector2(0, 0));
+			world = new World(new Vector2(0, 9.8f));
 			waiter = null;
 			options = new Icon[] { new Icon(contentManager, "Attack"), new Icon(contentManager, "Bag"), new Icon(contentManager, "Spells"), new Icon(contentManager, "Run") };
 			blackRect = new Texture2D(graphicsDevice, 1, 1);

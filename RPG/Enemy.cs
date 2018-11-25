@@ -25,6 +25,7 @@ namespace RPG
 		private int noteCount;
 		private Texture2D musicNote;
 		private Texture2D hitMarker;
+		private Body[] noteBodies;
 		private Vector2[] notePositions;
 		private bool[] visibility;
 		private Vector2 defaultPos;
@@ -55,6 +56,7 @@ namespace RPG
 			hitTimer = 0;
 			this.hitMarker = hitMarker;
 			piTimer = 0;
+			noteBodies = new Body[16];
 			notePositions = new Vector2[16];
 			visOrder = new int[] { 10, 2, 5, 13, 7, 15, 9, 1, 11, 3, 14, 6, 12, 4, 0, 8 };
 			visibility = new bool[16];
@@ -74,6 +76,7 @@ namespace RPG
 			body = new Body(world, new Vector2((400 - sprite.Width) / 2, (240 - offsetBottom + offsetTop - sprite.Height) / 2));
 			body.SetTransform(new Vector2((400 - sprite.Width) / 2, (240 - offsetBottom + offsetTop - sprite.Height) / 2), 0);
 			body.BodyType = BodyType.Dynamic;
+			body.IgnoreGravity = true;
 			body.Mass = 0.1f;
 			this.sprite = sprite;
 			health = 100;
@@ -82,9 +85,11 @@ namespace RPG
 			centerX = (int)defaultPos.X + (sprite.Width - musicNote.Width) / 2 + 6;
 			centerY = (int)defaultPos.Y + (sprite.Height - musicNote.Height) / 2 - 30;
 
-			for (int i = 0; i < notePositions.Length; i++)
+			for (int i = 0; i < noteBodies.Length; i++)
 			{
-				notePositions[i] = new Vector2(centerX + horizontalRadius * (float)Math.Cos(i * Math.PI / 8), centerY - verticalRadius * (float)Math.Sin(i * Math.PI / 8));
+				noteBodies[i] = new Body(world, new Vector2(centerX + horizontalRadius * (float)Math.Cos(i * Math.PI / 8), centerY - verticalRadius * ((float)Math.Sin(i * Math.PI / 8) - (float)Math.Cos(i * Math.PI / 8))), 0);
+				noteBodies[i].BodyType = BodyType.Dynamic;
+				//notePositions[i] = new Vector2(centerX + horizontalRadius * (float)Math.Cos(i * Math.PI / 8), centerY - verticalRadius * ((float)Math.Sin(i * Math.PI / 8) - (float)Math.Cos(i * Math.PI / 8)));
 			}
 		}
 
@@ -95,11 +100,11 @@ namespace RPG
 			{
 				sb.Draw(hitMarker, new Rectangle(centerX + hitX, centerY + hitMarker.Height/2 + hitY, hitMarker.Width, hitMarker.Height), Color.White);
 			}
-			for (int i = notePositions.Length-1; i >= 0; i--)
+			for (int i = noteBodies.Length-1; i >= 0; i--)
 			{
 				if (visibility[i])
 				{
-					sb.Draw(musicNote, new Rectangle((int)notePositions[i].X, (int)notePositions[i].Y, musicNote.Width, musicNote.Height), Color.White);
+					sb.Draw(musicNote, new Rectangle((int)noteBodies[i].Position.X, (int)noteBodies[i].Position.Y, musicNote.Width, musicNote.Height), Color.White);
 				}
 			}
 			//sb.Draw(musicNote, new Rectangle((int)notePos.X, (int)notePos.Y, musicNote.Width, musicNote.Height), Color.White);
@@ -107,9 +112,10 @@ namespace RPG
 
 		public void UpdateNotes(double elapsedTime)
 		{
-			for (int i = 0; i < notePositions.Length; i++)
+			for (int i = 0; i < noteBodies.Length; i++)
 			{
-				notePositions[i] = new Vector2(centerX + horizontalRadius * (float)Math.Cos((Math.PI / 8 * i) + piTimer), centerY - verticalRadius * (float)Math.Sin((Math.PI / 8 * i) + piTimer));
+				//notePositions[i] = new Vector2(centerX + horizontalRadius * (float)Math.Cos((Math.PI / 8 * i) + piTimer), centerY - verticalRadius * ((float)Math.Sin((Math.PI / 8 * i) + piTimer) - (float)Math.Cos((Math.PI / 8 * i) + piTimer/2)));
+				noteBodies[i].SetTransform(new Vector2(centerX + horizontalRadius * (float)Math.Cos((Math.PI / 8 * i) + piTimer), centerY - verticalRadius * ((float)Math.Sin((Math.PI / 8 * i) + piTimer) - (float)Math.Cos((Math.PI / 8 * i) + piTimer / 2))), 0);
 			}
 
 			//notePos = new Vector2((int)(centerX + horizontalRadius * Math.Cos(seconds)), (int)(centerY - verticalRadius * Math.Sin(seconds)));
@@ -133,7 +139,19 @@ namespace RPG
 
 		private bool FinishCombo()
 		{
-			visibility = new bool[16];
+			//visibility = new bool[16];
+			if(noteCount == 16)
+			{
+				//increase radius
+			}
+			else
+				for(int i = 0; i < noteBodies.Length; i++)
+				{
+					
+					noteBodies[i].LinearDamping = 0;
+					noteBodies[i].ApplyForce(new Vector2(9000*(noteBodies[i].Position.X - centerX), 50*(noteBodies[i].Position.Y - centerY)));
+					//give it an initial velocity or something
+				}
 			return true;
 		}
 
