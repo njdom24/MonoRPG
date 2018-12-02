@@ -10,14 +10,16 @@ namespace RPG
 	{
 		private int start;
 		private int end;
+		public int offset;
 
 		private int curFrame;
 
-		public Animation(int start, int end, bool startEnd = false)
+		public Animation(int start, int end, int offset = 0)
 		{
 			this.start = start;
 			this.end = end;
 			curFrame = end;
+			this.offset = offset;
 		}
 
 		public void advanceFrame()

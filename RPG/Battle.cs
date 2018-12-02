@@ -1,4 +1,5 @@
-﻿using FarseerPhysics.Dynamics;
+﻿using FarseerPhysics;
+using FarseerPhysics.Dynamics;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
@@ -49,8 +50,8 @@ namespace RPG
 			combatTimer = 0;
 			threshHold = 0.15;
 			combatIndicator = contentManager.Load<Texture2D>("Battle/Icons/Attack");
-			secondsPerBeat = 0.6f;
-			world = new World(new Vector2(0, 9.8f));
+			secondsPerBeat = 0.5f;
+			world = new World(ConvertUnits.ToSimUnits(0,400));
 			waiter = null;
 			options = new Icon[] { new Icon(contentManager, "Attack"), new Icon(contentManager, "Bag"), new Icon(contentManager, "Spells"), new Icon(contentManager, "Run") };
 			blackRect = new Texture2D(graphicsDevice, 1, 1);
@@ -63,7 +64,7 @@ namespace RPG
 			content = contentManager;
 			prevState = Keyboard.GetState();
 			selector = new Selector(4);
-			background = contentManager.Load<Texture2D>("Battle/BG");
+			background = contentManager.Load<Texture2D>("Battle/BackgroundL");
 			background2 = content.Load<Texture2D>("Battle/Yellow");
 			effect = contentManager.Load<Effect>("Battle/BattleBG");
 			bgTimer = 0;

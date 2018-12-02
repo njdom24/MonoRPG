@@ -265,6 +265,35 @@
 /processorParam:TextureFormat=Color
 /build:lightmask.png
 
+#begin Map/Lucas/Teen.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:Map/Lucas/Teen.png
+
+#begin Map/Tazmily/fulltileset.PNG
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:Map/Tazmily/fulltileset.PNG
+
+#begin Map/Tazmily/Tazmily.tmx
+/importer:
+/processor:
+/build:Map/Tazmily/Tazmily.tmx
+
 #begin OpenedDoor.png
 /importer:TextureImporter
 /processor:TextureProcessor

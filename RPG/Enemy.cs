@@ -1,4 +1,6 @@
-﻿using FarseerPhysics.Dynamics;
+﻿using FarseerPhysics;
+using FarseerPhysics.Dynamics;
+using FarseerPhysics.Dynamics;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
@@ -36,7 +38,11 @@ namespace RPG
 		private double noteTimer;
 
 		private int verticalRadius = 15;
+		private int verticalRadiusFinal = 180;//120
 		private int horizontalRadius = 80;
+		private int horizontalRadiusFinal = 250;//200
+		private bool increaseRadius = false;
+		private double radiusTimer = 0;
 
 		private bool visible;
 
@@ -56,10 +62,11 @@ namespace RPG
 			hitTimer = 0;
 			this.hitMarker = hitMarker;
 			piTimer = 0;
-			noteBodies = new Body[16];
-			notePositions = new Vector2[16];
-			visOrder = new int[] { 10, 2, 5, 13, 7, 15, 9, 1, 11, 3, 14, 6, 12, 4, 0, 8 };
-			visibility = new bool[16];
+			noteBodies = new Body[15];
+			notePositions = new Vector2[noteBodies.Length];
+			//visOrder = new int[] { 10, 2, 5, 13, 7, 15, 9, 1, 11, 3, 14, 6, 12, 4, 0, 8 };//, 8 };
+			visOrder = new int[] { 10, 2, 5, 13, 7, 14, 9, 1, 8, 3, 11, 6, 12, 4, 0 };//, 8 };
+			visibility = new bool[noteBodies.Length];
 			visible = true;
 			noteTimer = 0;
 			notePos = Vector2.Zero;
@@ -93,7 +100,7 @@ namespace RPG
 			}
 		}
 
-		public void Draw(SpriteBatch sb, double piTimer, int offsetTop = 0, int offsetBottom = 0)//make own timer eventually
+		public void Draw(SpriteBatch sb, double piTimer, int offsetTop = 0, int offsetBottom = 0)
 		{
 			sb.Draw(sprite, new Rectangle((int)body.Position.X, (int)body.Position.Y, sprite.Width, sprite.Height), Color.White);
 			if(hitTimer > 0)
@@ -104,18 +111,20 @@ namespace RPG
 			{
 				if (visibility[i])
 				{
-					sb.Draw(musicNote, new Rectangle((int)noteBodies[i].Position.X, (int)noteBodies[i].Position.Y, musicNote.Width, musicNote.Height), Color.White);
+					sb.Draw(musicNote, new Rectangle((int)ConvertUnits.ToDisplayUnits(noteBodies[i].Position.X), (int)ConvertUnits.ToDisplayUnits(noteBodies[i].Position.Y), musicNote.Width, musicNote.Height), Color.White);
 				}
 			}
 			//sb.Draw(musicNote, new Rectangle((int)notePos.X, (int)notePos.Y, musicNote.Width, musicNote.Height), Color.White);
 		}
 
-		public void UpdateNotes(double elapsedTime)
+		public void UpdateNotes()
 		{
 			for (int i = 0; i < noteBodies.Length; i++)
 			{
-				//notePositions[i] = new Vector2(centerX + horizontalRadius * (float)Math.Cos((Math.PI / 8 * i) + piTimer), centerY - verticalRadius * ((float)Math.Sin((Math.PI / 8 * i) + piTimer) - (float)Math.Cos((Math.PI / 8 * i) + piTimer/2)));
-				noteBodies[i].SetTransform(new Vector2(centerX + horizontalRadius * (float)Math.Cos((Math.PI / 8 * i) + piTimer), centerY - verticalRadius * ((float)Math.Sin((Math.PI / 8 * i) + piTimer) - (float)Math.Cos((Math.PI / 8 * i) + piTimer / 2))), 0);
+				if(increaseRadius)
+					noteBodies[i].SetTransform(ConvertUnits.ToSimUnits(centerX + horizontalRadius * (float)Math.Cos((Math.PI / 8 * i) + 1.4*piTimer), centerY - verticalRadius * ((float)Math.Sin((Math.PI / 8 * i) + 1.4*piTimer))), 0);
+				else
+					noteBodies[i].SetTransform(ConvertUnits.ToSimUnits(centerX + horizontalRadius * (float)Math.Cos((Math.PI / ((noteBodies.Length) / 2) * i) + piTimer), centerY - verticalRadius * ((float)Math.Sin((Math.PI / ((noteBodies.Length) / 2) * i) + piTimer) - (float)Math.Cos((Math.PI / ((noteBodies.Length) / 2) * i) + piTimer / 2))), 0);
 			}
 
 			//notePos = new Vector2((int)(centerX + horizontalRadius * Math.Cos(seconds)), (int)(centerY - verticalRadius * Math.Sin(seconds)));
@@ -123,10 +132,28 @@ namespace RPG
 
 		public void Update(GameTime gameTime)
 		{
-			piTimer += (16) * (gameTime.ElapsedGameTime.TotalSeconds / secondsPerBeat * Math.PI / 16);
+			radiusTimer += gameTime.ElapsedGameTime.TotalSeconds;
+			piTimer += gameTime.ElapsedGameTime.TotalSeconds / secondsPerBeat * Math.PI;
 			if(hitTimer > 0)
 				hitTimer -= gameTime.ElapsedGameTime.TotalSeconds;
-			Console.WriteLine(hitTimer);
+			if(increaseRadius)
+			{   //one's prolly gonna increase faster
+				UpdateNotes();
+
+				if (horizontalRadiusFinal > horizontalRadius)
+				{
+					horizontalRadius += (int)(500*gameTime.ElapsedGameTime.TotalSeconds);//+= (int)(1000 * gameTime.ElapsedGameTime.TotalSeconds);//USE A RADIUS TIMER
+					verticalRadius += (int)(400 * gameTime.ElapsedGameTime.TotalSeconds);//+= (int)(1000 * gameTime.ElapsedGameTime.TotalSeconds);
+				}
+				else
+				{
+					visibility = new bool[noteBodies.Length];
+					increaseRadius = false;
+					horizontalRadius = 80;
+					verticalRadius = 15;
+				}
+			}
+			//UpdateNodes();
 		}
 
 		public override void ForceFinish()
@@ -140,16 +167,25 @@ namespace RPG
 		private bool FinishCombo()
 		{
 			//visibility = new bool[16];
-			if(noteCount == 16)
+			if(noteCount == noteBodies.Length)
 			{
+				radiusTimer = 0;
+				increaseRadius = true;
+				for (int i = 0; i < noteBodies.Length; i++)
+				{
+					//noteBodies[i].IgnoreGravity = true;
+					noteBodies[i].ResetDynamics();
+				}
 				//increase radius
 			}
 			else
 				for(int i = 0; i < noteBodies.Length; i++)
 				{
-					
-					noteBodies[i].LinearDamping = 0;
-					noteBodies[i].ApplyForce(new Vector2(9000*(noteBodies[i].Position.X - centerX), 50*(noteBodies[i].Position.Y - centerY)));
+					//noteBodies[i].IgnoreGravity = false;
+					noteBodies[i].ResetDynamics();
+					//noteBodies[i].LinearDamping = 0;
+					//noteBodies[i].ApplyForce(new Vector2(9000*(noteBodies[i].Position.X - centerX), 50*(noteBodies[i].Position.Y - centerY)));
+					noteBodies[i].ApplyForce(ConvertUnits.ToSimUnits(noteCount*50*(ConvertUnits.ToDisplayUnits(noteBodies[i].Position.X) - centerX), noteCount*40*(ConvertUnits.ToDisplayUnits(noteBodies[i].Position.Y)-centerY)));
 					//give it an initial velocity or something
 				}
 			return true;
@@ -157,8 +193,8 @@ namespace RPG
 
 		public override bool IsDone(GameTime gameTime, double combatTimer, KeyboardState prevState)//TODO: Check for multiple hits per beat
 		{
-			UpdateNotes(gameTime.ElapsedGameTime.TotalSeconds);
-			if (noteCount == 16)
+			UpdateNotes();
+			if (noteCount == noteBodies.Length)
 				return FinishCombo();
 
 			moveTimer -= gameTime.ElapsedGameTime.TotalSeconds;
@@ -224,19 +260,24 @@ namespace RPG
 			hitTimer = 0.05;
 			hitX = offsetter.Next(-10, 10);
 			hitY = offsetter.Next(-10, 10);
-			visibility[visOrder[noteCount-1]] = true;
+			if(noteCount > 0)
+				visibility[visOrder[noteCount-1]] = true;
+			Console.WriteLine("NoteCount: " + noteCount);
 		}
 
 		public override void TakeDamage(int damage, double combatTimer)
 		{
-			visibility = new bool[16];
-			noteCount = 1;
+			visibility = new bool[noteBodies.Length];
+			noteCount = 0;
 			Jostle(-2.5f);
 			piTimer = combatTimer;
 			health -= damage;
 			noteHit = (combatTimer > secondsPerBeat - threshHold);
 
 			MakeVisible();
+			increaseRadius = false;
+			horizontalRadius = 80;
+			verticalRadius = 15;
 		}
 
 		private void AdditionalDamage()
@@ -255,7 +296,7 @@ namespace RPG
 		{
 			body.ResetDynamics();
 			body.ApplyForce(new Vector2(lastForce, 0));
-			lastForce = lastForce * multiplier;
+			lastForce *= multiplier;
 		}
 	}
 }
