@@ -1,5 +1,6 @@
 ﻿using FarseerPhysics;
 using FarseerPhysics.Dynamics;
+using FarseerPhysics.Dynamics.Contacts;
 using FarseerPhysics.Factories;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
@@ -60,7 +61,7 @@ namespace RPG
 			canMove = true;
 			flipped = false;
 			//body = new Body(world, new Vector2(0, 0));
-			body = BodyFactory.CreateRectangle(world, ConvertUnits.ToSimUnits(13), ConvertUnits.ToSimUnits(25), 0.1f);
+			body = BodyFactory.CreateRectangle(world, ConvertUnits.ToSimUnits(13), ConvertUnits.ToSimUnits(6), 0.1f);
 			//body = BodyFactory.CreateRoundedRectangle(world, ConvertUnits.ToSimUnits(13), ConvertUnits.ToSimUnits(25), ConvertUnits.ToSimUnits(4), ConvertUnits.ToSimUnits(4), 10, 0.1f, Vector2.Zero);
 			//body = BodyFactory.CreateRectangle(world, 10, 10, 1, new Vector2(0,0));
 			//body.Position = new Vector2(8 * 31, 23*16);
@@ -69,8 +70,9 @@ namespace RPG
 			body.Friction = 0;
 			//body.Restitution = 0;
 			//body.LinearDamping = 0;
-			body.UserData = "player";
+			body.UserData = this;
 			body.Mass = 0.1f;
+			body.OnCollision += OnCollisionHandler;
 			x = posX;
 			y = posY;
 			//body.Position = new Vector2(16 * 16, 14 * 16);
@@ -85,7 +87,15 @@ namespace RPG
 			walkDown = new Animation(0, 3, 0);
 			curAnim = walkDown;
 		}
-
+		private bool OnCollisionHandler(Fixture fixtureA, Fixture fixtureB, Contact contact)
+		{
+			Console.WriteLine("Good old fashioned hurgusburgus");
+			return true;
+		}
+		public override string ToString()
+		{
+			return "pureiya";
+		}
 		public void HandleInput()
 		{
 
@@ -103,10 +113,13 @@ namespace RPG
 			{
 				if (Keyboard.GetState().IsKeyDown(Keys.LeftShift))
 				{
-					if(!running)
+					if (!running)
 					{
 						runTimer += gameTime.ElapsedGameTime.TotalSeconds;
 						runOffset = 4;
+						body.LinearVelocity = Vector2.Zero;
+						curAnim.resetStart();
+						Move(gameTime, false);
 					}
 					else
 					{
@@ -114,20 +127,20 @@ namespace RPG
 						runOffset = 4;
 						running = false;
 					}
-					
+
 					//animSpeed = 0.15f;
 					//speedMult = 1.5f;
 				}
 				else
 				{
-					if(runTimer >= 0.5f)
+					if (runTimer >= 0.5f)
 					{
 						running = true;
 						runOffset = 5;
 						animSpeed = 0.15f;
 						speedMult = 1.5f;
 					}
-					else if(!running)
+					else if (!running)
 					{
 						//running = false;//not needed?
 						runOffset = 0;
@@ -135,79 +148,81 @@ namespace RPG
 						speedMult = 1;
 					}
 					runTimer = 0;
-				}
-				if (Keyboard.GetState().IsKeyDown(Keys.Up) || Keyboard.GetState().IsKeyDown(Keys.Down) || Keyboard.GetState().IsKeyDown(Keys.Left) || Keyboard.GetState().IsKeyDown(Keys.Right))
-				{
-					body.LinearVelocity = Vector2.Zero;
-					//curStateH = HorizontalState.None;
-					//curStateV = VerticalState.None;
-					if (Keyboard.GetState().IsKeyDown(Keys.Right))// && x + 1 < colArray[y].Length)
-					{
-						SetStateH(HorizontalState.Right);
-						//myMap.Camera.Move(new Vector2(2, 0));
 
-						if (false)//colArray[y][x + 1] == 1)// || colArray[y][x + 1] == 3)
-							animSpeed = 0.5f;
+					if (Keyboard.GetState().IsKeyDown(Keys.Up) || Keyboard.GetState().IsKeyDown(Keys.Down) || Keyboard.GetState().IsKeyDown(Keys.Left) || Keyboard.GetState().IsKeyDown(Keys.Right))
+					{
+						body.LinearVelocity = Vector2.Zero;
+						//curStateH = HorizontalState.None;
+						//curStateV = VerticalState.None;
+						if (Keyboard.GetState().IsKeyDown(Keys.Right))// && x + 1 < colArray[y].Length)
+						{
+							SetStateH(HorizontalState.Right);
+							//myMap.Camera.Move(new Vector2(2, 0));
+
+							if (false)//colArray[y][x + 1] == 1)// || colArray[y][x + 1] == 3)
+								animSpeed = 0.5f;
+							else
+							{
+								offsetX = 9;
+								//animSpeed = 0.25f;
+								body.LinearVelocity += ConvertUnits.ToSimUnits(64, 0);
+								//colArray[y][x++] = 0;
+								//colArray[y][x] = 2;
+							}
+						}
+						else if (Keyboard.GetState().IsKeyDown(Keys.Left))// && x > 0)
+						{
+							SetStateH(HorizontalState.Left);
+							offsetX = 9;
+							body.LinearVelocity += ConvertUnits.ToSimUnits(-64, 0);
+						}
 						else
 						{
-							offsetX = 9;
-							//animSpeed = 0.25f;
-							body.LinearVelocity += ConvertUnits.ToSimUnits(64, 0);
-							//colArray[y][x++] = 0;
-							//colArray[y][x] = 2;
+							offsetX = 0;
+							SetStateH(HorizontalState.None);
 						}
-					}
-					else if (Keyboard.GetState().IsKeyDown(Keys.Left))// && x > 0)
-					{
-						SetStateH(HorizontalState.Left);
-						offsetX = 9;
-						body.LinearVelocity += ConvertUnits.ToSimUnits(-64, 0);
-					}
-					else
-					{
-						offsetX = 0;
-						SetStateH(HorizontalState.None);
-					}
-					if (Keyboard.GetState().IsKeyDown(Keys.Up))// && y > 0)
-					{
-						SetStateV(VerticalState.Up);
-						offsetY = 50;
-						body.LinearVelocity += ConvertUnits.ToSimUnits(0, -64);
+						if (Keyboard.GetState().IsKeyDown(Keys.Up))// && y > 0)
+						{
+							SetStateV(VerticalState.Up);
+							offsetY = 50;
+							body.LinearVelocity += ConvertUnits.ToSimUnits(0, -64);
 
+						}
+						else if (Keyboard.GetState().IsKeyDown(Keys.Down))// && y + 1 < colArray.Length)
+						{
+							SetStateV(VerticalState.Down);
+							offsetY = 0;
+							body.LinearVelocity += ConvertUnits.ToSimUnits(0, 64);
+						}
+						else
+						{
+							offsetY = 25;
+							SetStateV(VerticalState.None);
+						}
+						body.LinearVelocity *= speedMult;
 					}
-					else if (Keyboard.GetState().IsKeyDown(Keys.Down))// && y + 1 < colArray.Length)
-					{
-						SetStateV(VerticalState.Down);
-						offsetY = 0;
-						body.LinearVelocity += ConvertUnits.ToSimUnits(0, 64);
-					}
-					else
-					{
-						offsetY = 25;
-						SetStateV(VerticalState.None);
-					}
-					body.LinearVelocity *= speedMult;
-				}
-				else if (!running)
-					body.LinearVelocity = Vector2.Zero;
+					else if (!running)
+						body.LinearVelocity = Vector2.Zero;
 
-				if (running)
-				{
-					body.LinearVelocity = Vector2.Zero;
-					if (curStateH == HorizontalState.Left)
-						body.LinearVelocity += ConvertUnits.ToSimUnits(-64, 0);
-					else if (curStateH == HorizontalState.Right)
-						body.LinearVelocity += ConvertUnits.ToSimUnits(64, 0);
-					if (curStateV == VerticalState.Up)
-						body.LinearVelocity += ConvertUnits.ToSimUnits(0, -64);
-					else if (curStateV == VerticalState.Down)
-						body.LinearVelocity += ConvertUnits.ToSimUnits(0, 64);
-					body.LinearVelocity *= speedMult;
+					if (running)
+					{
+						body.LinearVelocity = Vector2.Zero;
+						if (curStateH == HorizontalState.Left)
+							body.LinearVelocity += ConvertUnits.ToSimUnits(-64, 0);
+						else if (curStateH == HorizontalState.Right)
+							body.LinearVelocity += ConvertUnits.ToSimUnits(64, 0);
+						if (curStateV == VerticalState.Up)
+							body.LinearVelocity += ConvertUnits.ToSimUnits(0, -64);
+						else if (curStateV == VerticalState.Down)
+							body.LinearVelocity += ConvertUnits.ToSimUnits(0, 64);
+						body.LinearVelocity *= speedMult;
+					}
+					Move(gameTime);
 				}
 
 				
 
-				Move(gameTime);
+				/*
 				if (body.ContactList != null)
 				{
 					//Console.WriteLine("billmus");
@@ -217,36 +232,35 @@ namespace RPG
 					//{
 					if (body.ContactList != null && body.ContactList.Contact.IsTouching)
 					{
-
 						//Console.WriteLine(colCount++);
-						//Console.WriteLine("Slimy Cunt");
 						Console.WriteLine(body.ContactList.Contact.FixtureA.UserData);
-						Console.WriteLine(body.ContactList.Contact.FixtureB.UserData);
-						if ((string)body.ContactList.Contact.FixtureA.UserData == ("polygon") || (string)body.ContactList.Contact.FixtureB.UserData == ("polygon"))
-						{
-							//Console.WriteLine("killmus");
-							if (true)
+						if(body.ContactList.Contact.FixtureA.UserData != null && body.ContactList.Contact.FixtureB.UserData != null)
+							if (true)//body.ContactList.Contact.FixtureA.UserData.ToString().Equals("polygon") || body.ContactList.Contact.FixtureB.UserData.ToString().Equals("polygon"))
 							{
-								running = false;
-								runOffset = 0;
-								animSpeed = 0.25f;
-								speedMult = 1;
-								justTouched = true;
-								//break;
+								//Console.WriteLine("killmus");
+								if (true)
+								{
+									running = false;
+									runOffset = 0;
+									animSpeed = 0.25f;
+									speedMult = 1;
+									justTouched = true;
+									//break;
+								}
 							}
-						}
-						else
-							justTouched = false;
+							else
+								justTouched = false;
 					}
 					//while (body.ContactList.Next != null);
 
-
+					
 
 				}
+				*/
 			}
 		}
 
-		public void Move(GameTime gameTime)
+		public void Move(GameTime gameTime, bool notRunning = true)
 		{
 			bool hPass = false;
 			//Console.WriteLine("HSTATE: " + curStateH);
@@ -255,7 +269,8 @@ namespace RPG
 			timer += gameTime.ElapsedGameTime.TotalSeconds;
 			if (timer > animSpeed)
 			{
-				walkDown.advanceFrame();
+				if(notRunning)
+					walkDown.advanceFrame();
 				timer = 0;
 			}
 			if (curStateH == HorizontalState.Right && ((Keyboard.GetState().IsKeyDown(Keys.Right)) || body.LinearVelocity.X > 0))
@@ -332,14 +347,16 @@ namespace RPG
 			curStateV = VerticalState.None;
 			prevStateV = VerticalState.None;
 		}
-		public void Draw(SpriteBatch sb)
+		public void Draw(SpriteBatch sb, int mapHeight)
 		{
 			//Console.WriteLine("Shitfuck: " + body.Position.X + ", Fuckshit: " + ConvertUnits.ToDisplayUnits(body.Position.X));
 			//Need to add +1 to animIndex if flipped
+			float zIndex = 1 - ConvertUnits.ToDisplayUnits(body.Position.Y) / mapHeight;
+
 			if (curStateH == HorizontalState.Left)
-				sb.Draw(tex, new Rectangle((int)Math.Floor(ConvertUnits.ToDisplayUnits(body.Position.X)), (int)Math.Floor(ConvertUnits.ToDisplayUnits(body.Position.Y)) - 3, 15, 25), new Rectangle((animIndex + 1 + runOffset + offsetX) * 15, curAnim.offset + offsetY, -15, 25), Color.White);
+				sb.Draw(tex, new Rectangle((int)ConvertUnits.ToDisplayUnits(body.Position.X), (int)ConvertUnits.ToDisplayUnits(body.Position.Y) - 10 - 3, 15, 25), new Rectangle((animIndex + 1 + runOffset + offsetX) * 15, curAnim.offset + offsetY, -15, 25), Color.White, 0, Vector2.Zero, SpriteEffects.None, zIndex);
 			else
-				sb.Draw(tex, new Rectangle((int)Math.Floor(ConvertUnits.ToDisplayUnits(body.Position.X)), (int)Math.Floor(ConvertUnits.ToDisplayUnits(body.Position.Y)) - 3, 15, 25), new Rectangle((animIndex + runOffset + offsetX) * 15, curAnim.offset + offsetY, 15, 25), Color.White);
+				sb.Draw(tex, new Rectangle((int)ConvertUnits.ToDisplayUnits(body.Position.X), (int)ConvertUnits.ToDisplayUnits(body.Position.Y) - 10 - 3, 15, 25), new Rectangle((animIndex + runOffset + offsetX) * 15, curAnim.offset + offsetY, 15, 25), Color.White, 0, Vector2.Zero, SpriteEffects.None, zIndex);
 			//sb.Draw(tex, new Rectangle((int)body.Position.X - (15 - 1) * 8, (int)body.Position.Y - (25 - 1) * 8, 16 * 15, 16 * 25), new Rectangle((animIndex + runOffset) * 15, curAnim.offset, 15, 25)), Color.White);
 		}
 

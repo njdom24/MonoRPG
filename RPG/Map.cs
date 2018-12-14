@@ -164,7 +164,7 @@ namespace RPG
         {
             mapRenderer.Draw(tMap, camera.GetViewMatrix());
             pSb.Begin(transformMatrix: camera.GetViewMatrix(), sortMode: SpriteSortMode.Deferred);//SpriteSortMode.Immediate required for pixel shader
-            
+
             //pSb.Begin();
             //pSb.Draw(debug, new Rectangle(0, 0, debug.Width, debug.Height), Color.White);
             //mapRenderer.Draw(tMap, camera.GetViewMatrix());

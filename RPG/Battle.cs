@@ -64,7 +64,7 @@ namespace RPG
 			content = contentManager;
 			prevState = Keyboard.GetState();
 			selector = new Selector(4);
-			background = contentManager.Load<Texture2D>("Battle/BackgroundL");
+			background = contentManager.Load<Texture2D>("Battle/BG");
 			background2 = content.Load<Texture2D>("Battle/Yellow");
 			effect = contentManager.Load<Effect>("Battle/BattleBG");
 			bgTimer = 0;

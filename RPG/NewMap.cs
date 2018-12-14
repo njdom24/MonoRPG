@@ -1,6 +1,7 @@
 ﻿
 using FarseerPhysics;
 using FarseerPhysics.Dynamics;
+using FarseerPhysics.Dynamics.Contacts;
 using FarseerPhysics.Factories;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
@@ -27,6 +28,7 @@ namespace RPG
 
 		private KeyboardState prevState;//used by both npcs and textboxes
 		private Hud hud;
+		private NewNPC[] npcs;
 		private int tileWidth;
 		private int tileHeight;
 		private int width;
@@ -83,6 +85,7 @@ namespace RPG
 			mapRenderer = new TiledMapRenderer(pDevice);
 
 			world = new World(Vector2.Zero);
+			world.ContactManager.OnBroadphaseCollision += BroadphaseHandler;
 
 			//camera.Position = player.body.Position;
 			//Console.WriteLine("Scunt: " + tMap.ObjectLayers.Count);
@@ -97,7 +100,24 @@ namespace RPG
 			blockDims = new List<Vector2>();
 			MakeCollisionBodies();
 
+			npcs = new NewNPC[] {
+				new NewNPC(world, content, player, 2, false, 12, 15, new string[] { "Weebs are worse\nthan fortnite\ngamers.", "Where's the lie?" }),
+				//new NewNPC(world, content, player, 0, true, 18, 18, new string[] {"help"}, 4, 1)
+			};
 		}
+
+		private void BroadphaseHandler(ref FixtureProxy fp1, ref FixtureProxy fp2)
+		{
+			//Console.WriteLine(fp1.Fixture.UserData);
+			//Console.WriteLine(fp2.Fixture.UserData);
+			if (fp1.Fixture.Body.UserData != null)
+				if (fp1.Fixture.Body.UserData is NewPlayer)
+					Console.WriteLine("bingus");
+			if (fp2.Fixture.Body.UserData != null)
+				if (fp2.Fixture.Body.UserData is NewPlayer)
+					Console.WriteLine("burgis");
+		}
+
 		public void HandleInput(GameTime gameTime)
 		{
 			if (Keyboard.GetState().IsKeyDown(Keys.A) && prevState.IsKeyUp(Keys.A))
@@ -133,6 +153,7 @@ namespace RPG
 				//Body b = (BodyFactory.CreateRectangle(world, 16*3, 16*2, 0.2f, new Vector2(32 + 8*2, 32 + 8)));
 				blocks.Add(BodyFactory.CreateRectangle(world, ConvertUnits.ToSimUnits(width * 16), ConvertUnits.ToSimUnits(height * 16), 0, new Vector2(ConvertUnits.ToSimUnits(x * 16 + (width - 1) * 8), ConvertUnits.ToSimUnits(y * 16 + (height - 1) * 8))));
 				blocks[blocks.Count - 1].BodyType = BodyType.Static;
+				blocks[blocks.Count - 1].UserData = null;
 				blockDims.Add(new Vector2(width, height));
 				//sb.Draw(debug, new Rectangle((int)b.Position.X - (width-1)*8, (int)b.Position.Y - (height-1)*8, 16*width, 16*height), new Rectangle(0, 0, 16, 16), Color.White);
 			}
@@ -142,12 +163,14 @@ namespace RPG
 		void Screen.Draw(SpriteBatch pSb)
 		{
 			mapRenderer.Draw(tMap.GetLayer("Ground"), camera.GetViewMatrix());
-			pSb.Begin(transformMatrix: camera.GetViewMatrix(), sortMode: SpriteSortMode.Deferred);//SpriteSortMode.Immediate required for pixel shader
-			
+			pSb.Begin(transformMatrix: camera.GetViewMatrix(), sortMode: SpriteSortMode.BackToFront);//SpriteSortMode.Immediate required for pixel shader
+
 			//pSb.Begin();
 			//pSb.Draw(debug, new Rectangle(0, 0, debug.Width, debug.Height), Color.White);
 			//mapRenderer.Draw(tMap, camera.GetViewMatrix());
-			player.Draw(pSb);
+			foreach (NewNPC n in npcs)
+				n.Draw(pSb, tMap.HeightInPixels);
+			player.Draw(pSb, tMap.HeightInPixels);
 			//g.SamplerStates[0] = SamplerState.PointClamp;
 
 			Vector2 tilePos = Vector2.Zero;
@@ -179,6 +202,8 @@ namespace RPG
 			{
 				world.Step((float)gameTime.ElapsedGameTime.TotalSeconds);
 				player.Update(gameTime, false);
+				foreach (NewNPC n in npcs)
+					n.Update(gameTime);
 				/*
 				foreach (NewNPC n in npcs)
 				{
@@ -195,6 +220,8 @@ namespace RPG
 			else
 			{
 				player.Update(gameTime, true);
+				foreach (NewNPC n in npcs)
+					n.Update(gameTime);
 				if (hud.messageComplete())
 				{
 					speaking = false;
@@ -210,7 +237,7 @@ namespace RPG
 
 		private void AdjustCamera()
 		{
-			Vector2 tempPos = new Vector2((int)(ConvertUnits.ToDisplayUnits(player.body.Position.X) - 200), (int)(ConvertUnits.ToDisplayUnits(player.body.Position.Y) - 120 + 16));
+			Vector2 tempPos = new Vector2((int)(ConvertUnits.ToDisplayUnits(player.body.Position.X) - 200), (int)(ConvertUnits.ToDisplayUnits(player.body.Position.Y) - 120 + 16 - 13));
 
 			if (TooFarUp())
 				tempPos.Y = 0;
@@ -236,12 +263,12 @@ namespace RPG
 
 		private bool TooFarUp()
 		{
-			return (ConvertUnits.ToDisplayUnits(player.body.Position.Y) - 240 / 2 + 16 < 0);
+			return (ConvertUnits.ToDisplayUnits(player.body.Position.Y) - 240 / 2 + 16 - 13 < 0);
 		}
 
 		private bool TooFarDown()
 		{
-			return (ConvertUnits.ToDisplayUnits(player.body.Position.Y) - 240 / 2 + 16 + 240 > tMap.HeightInPixels);
+			return (ConvertUnits.ToDisplayUnits(player.body.Position.Y) - 240 / 2 + 16 - 13 + 240 > tMap.HeightInPixels);
 		}
 
 		private void parsePolys()
@@ -294,7 +321,7 @@ namespace RPG
 			
 			Console.WriteLine(s);
 			foreach (List<Vector2> list in myList)
-				BodyFactory.CreatePolygon(world, new FarseerPhysics.Common.Vertices(list), 0.1f).UserData = "polygon";
+				BodyFactory.CreatePolygon(world, new FarseerPhysics.Common.Vertices(list), 0.1f).UserData = this;
 
 
 		}
