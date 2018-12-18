@@ -1,5 +1,6 @@
 ﻿
 using FarseerPhysics;
+using FarseerPhysics.DebugView;
 using FarseerPhysics.Dynamics;
 using FarseerPhysics.Dynamics.Contacts;
 using FarseerPhysics.Factories;
@@ -26,6 +27,7 @@ namespace RPG
 	{
 		private Effect effect;
 
+		private DebugViewXNA debugView;
 		private KeyboardState prevState;//used by both npcs and textboxes
 		private Hud hud;
 		private NewNPC[] npcs;
@@ -37,7 +39,6 @@ namespace RPG
 		private Texture2D debug;
 		//private Texture2D light;
 		private ContentManager cont;
-		private DebugViewBase debugView;
 		private List<Body> blocks;
 		private List<Vector2> blockDims;//x, y, width, height
 
@@ -85,7 +86,16 @@ namespace RPG
 			mapRenderer = new TiledMapRenderer(pDevice);
 
 			world = new World(Vector2.Zero);
-			world.ContactManager.OnBroadphaseCollision += BroadphaseHandler;
+			//world.ContactManager.OnBroadphaseCollision += BroadphaseHandler;
+			world.ContactManager.EndContact += EndContactHandler;
+			debugView = new DebugViewXNA(world);
+			debugView.LoadContent(pDevice, content);
+			//debugView.AppendFlags(DebugViewFlags.DebugPanel);
+			//debugView.AppendFlags(DebugViewFlags.PolygonPoints);
+			//debugView.AppendFlags(DebugViewFlags.ContactPoints);
+			//debugView.AppendFlags(DebugViewFlags.AABB);
+			debugView.AppendFlags(DebugViewFlags.Shape);
+			debugView.DefaultShapeColor = Color.Green;
 
 			//camera.Position = player.body.Position;
 			//Console.WriteLine("Scunt: " + tMap.ObjectLayers.Count);
@@ -94,14 +104,13 @@ namespace RPG
 			player = new NewPlayer(world, content, 16, 23);
 			//npc = new NPC(world, content, colArray, 2, false, 16, 14, new string[] {"Weebs are worse\nthan fortnite\ngamers.", "Where's the lie?" });
 
-			CheckCollisions();
-
+			//Body b1 = BodyFactory.CreateRectangle(world, 3, 3, 1);
 
 			blockDims = new List<Vector2>();
 			MakeCollisionBodies();
 
 			npcs = new NewNPC[] {
-				new NewNPC(world, content, player, 2, false, 12, 15, new string[] { "Weebs are worse\nthan fortnite\ngamers.", "Where's the lie?" }),
+				new NewNPC(world, content, player, 0, false, 12, 15, prevState, new string[] { "Weebs are worse\nthan fortnite\ngamers.", "Where's the lie?" }),
 				//new NewNPC(world, content, player, 0, true, 18, 18, new string[] {"help"}, 4, 1)
 			};
 		}
@@ -110,12 +119,61 @@ namespace RPG
 		{
 			//Console.WriteLine(fp1.Fixture.UserData);
 			//Console.WriteLine(fp2.Fixture.UserData);
-			if (fp1.Fixture.Body.UserData != null)
-				if (fp1.Fixture.Body.UserData is NewPlayer)
-					Console.WriteLine("bingus");
-			if (fp2.Fixture.Body.UserData != null)
-				if (fp2.Fixture.Body.UserData is NewPlayer)
-					Console.WriteLine("burgis");
+			if (fp1.Fixture.Body.UserData != null && fp1.Fixture.Body.UserData is NewPlayer)
+				if(fp2.Fixture.Body.UserData != null && fp2.Fixture.Body.UserData == "polygon")
+					Console.WriteLine("nurgis");
+			if (fp2.Fixture.Body.UserData != null && fp2.Fixture.Body.UserData is NewPlayer)
+				if (fp1.Fixture.Body.UserData != null && fp1.Fixture.Body.UserData == "polygon")
+					Console.WriteLine("nurgis");
+		}
+		
+		private void EndContactHandler(Contact contact)//unfinished
+		{
+			Console.WriteLine("end contact");
+			NewNPC tempNPC;
+			if (contact.FixtureA.Body.UserData is NewNPC)
+				tempNPC = (NewNPC)contact.FixtureA.Body.UserData;
+			else if (contact.FixtureB.Body.UserData is NewNPC)
+				tempNPC = (NewNPC)contact.FixtureB.Body.UserData;
+			else
+				return;
+
+			tempNPC.touchingPlayer = false;
+		}
+
+		private void OldEndContactHandler(Contact contact)
+		{
+			NewPlayer temp;
+			if (contact.FixtureA.Body.UserData != null && contact.FixtureA.Body.UserData is NewPlayer)
+			{
+				if (contact.FixtureB.Body.UserData == "Triangles")
+				{
+					Console.WriteLine("Disconnected from angle");
+					temp = (NewPlayer)contact.FixtureA.Body.UserData;
+					temp.touchingAngle = false;
+				}
+				else if (contact.FixtureB.Body.UserData == "Spangles")
+				{
+					Console.WriteLine("Disconnected from wall");
+					temp = (NewPlayer)contact.FixtureA.Body.UserData;
+					temp.touchingWall = false;
+				}
+			}
+			else if (contact.FixtureB.Body.UserData != null && contact.FixtureB.Body.UserData is NewPlayer)
+			{
+				if (contact.FixtureA.Body.UserData == "Triangles")
+				{
+					Console.WriteLine("Disconnected from angle");
+					temp = (NewPlayer)contact.FixtureB.Body.UserData;
+					temp.touchingAngle = false;
+				}
+				else if (contact.FixtureA.Body.UserData == "Spangles")
+				{
+					Console.WriteLine("Disconnected from wall");
+					temp = (NewPlayer)contact.FixtureB.Body.UserData;
+					temp.touchingWall = false;
+				}
+			}
 		}
 
 		public void HandleInput(GameTime gameTime)
@@ -123,11 +181,7 @@ namespace RPG
 			if (Keyboard.GetState().IsKeyDown(Keys.A) && prevState.IsKeyUp(Keys.A))
 				hud.finishMessage();
 		}
-		private void CheckCollisions()
-		{
-			int x = (int)player.body.Position.X / 16;
-			int y = (int)player.body.Position.Y / 16;
-		}
+
 		private void ParseCollisions()
 		{
 			//makes triangular collisions
@@ -157,7 +211,8 @@ namespace RPG
 				blockDims.Add(new Vector2(width, height));
 				//sb.Draw(debug, new Rectangle((int)b.Position.X - (width-1)*8, (int)b.Position.Y - (height-1)*8, 16*width, 16*height), new Rectangle(0, 0, 16, 16), Color.White);
 			}
-			parsePolys();
+			//parsePolys("Triangles", true);
+			parsePolys("Spangles", false);
 		}
 
 		void Screen.Draw(SpriteBatch pSb)
@@ -187,6 +242,13 @@ namespace RPG
 			pSb.Begin(transformMatrix: Camera.GetViewMatrix());
 			//DrawDebug(pSb);
 			pSb.End();
+
+			Matrix proj = Matrix.CreateOrthographicOffCenter(0f, 400, 240, 0f, 0f, 1f);
+			Matrix view = camera.GetViewMatrix();
+			debugView.RenderDebugData(ref proj, ref view);
+			debugView.BeginCustomDraw(ref proj, ref view);
+			debugView.EndCustomDraw();
+			
 		}
 
 		void Screen.Update(GameTime gameTime)
@@ -204,18 +266,19 @@ namespace RPG
 				player.Update(gameTime, false);
 				foreach (NewNPC n in npcs)
 					n.Update(gameTime);
-				/*
 				foreach (NewNPC n in npcs)
 				{
-					if (player.isStopped() && n.isStopped() && n.checkPlayer(player.GetState(), prevState))
-					{
-						speaking = true;
-						hud = new Hud(n.messages, cont, n.textWidth, n.textHeight);
-					}
+					if(Keyboard.GetState().IsKeyDown(Keys.Space) && prevState.IsKeyUp(Keys.Space))
+						if (n.isStopped() && n.touchingPlayer)
+						{
+							n.speaking = true;
+							n.FacePlayer();
+							speaking = true;
+							hud = new Hud(n.messages, cont, n.textWidth, n.textHeight);
+						}
 
 					n.Update(gameTime);
 				}
-				*/
 			}
 			else
 			{
@@ -225,6 +288,8 @@ namespace RPG
 				if (hud.messageComplete())
 				{
 					speaking = false;
+					foreach (NewNPC n in npcs)
+						n.ResetSpeaking();
 				}
 			}
 
@@ -271,19 +336,22 @@ namespace RPG
 			return (ConvertUnits.ToDisplayUnits(player.body.Position.Y) - 240 / 2 + 16 - 13 + 240 > tMap.HeightInPixels);
 		}
 
-		private void parsePolys()
+		private void parsePolys(string group, bool isSensor)
 		{
 			string s = System.Text.Encoding.Default.GetString(Properties.Resource.Tazmily);
 			string line;
 			int lastIndex = 0;
-			lastIndex = s.IndexOf("Triangles");
+			lastIndex = s.IndexOf(group);
+			
 			string x = "Blargle";
 			string y = "Flargle";
 			s = s.Substring(lastIndex);//Go to objectgroup line
+			s = s.Substring(0, s.IndexOf("</objectgroup>"));
 			s = s.Substring(s.IndexOf('\n') + 1);//Go to object line
 			List<List<Vector2>> myList = new List<List<Vector2>>();
 			while (s.Contains("<object"))
 			{
+				
 				string p1 = "";
 				string p2 = "";
 				myList.Add(new List<Vector2>());
@@ -318,10 +386,14 @@ namespace RPG
 				myList[myList.Count - 1].Add(ConvertUnits.ToSimUnits(float.Parse(p1, CultureInfo.InvariantCulture.NumberFormat)+offX, float.Parse(p2, CultureInfo.InvariantCulture.NumberFormat)+offY));
 				s = s.Substring(s.IndexOf("</object>") + 9);
 			}
-			
+			Body tempBody;
 			Console.WriteLine(s);
 			foreach (List<Vector2> list in myList)
-				BodyFactory.CreatePolygon(world, new FarseerPhysics.Common.Vertices(list), 0.1f).UserData = this;
+			{
+				tempBody = BodyFactory.CreatePolygon(world, new FarseerPhysics.Common.Vertices(list), 0.1f);
+				tempBody.IsSensor = isSensor;
+				tempBody.UserData = group;
+			}
 
 
 		}

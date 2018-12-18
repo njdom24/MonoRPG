@@ -39,7 +39,7 @@ namespace RPG
 			Window.IsBorderless = true;
 			Window.Title = "FF";
 
-			int scale = 1;//GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width / 600;//400 for full, 800 for half
+			int scale = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width / 600;//400 for full, 800 for half
 			Window.Position = new Point(GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width / 2 - 200 * scale, GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height / 2 - 120 * scale);
 			manager.PreferredBackBufferWidth = 400 * scale;
 			manager.PreferredBackBufferHeight = 240 * scale;

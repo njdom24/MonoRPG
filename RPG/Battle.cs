@@ -73,7 +73,7 @@ namespace RPG
 			this.graphicsDevice = graphicsDevice;
 			text = new Hud(new string[] { "hi" }, contentManager, 48, 3, 0, 240-(5*8), canClose: true);
 			text.finishText();
-			commandName = new Hud(new string[] { "Attack" }, contentManager, 10, 1, 240 - 80, 0, canClose: false);
+			commandName = new Hud(new string[] { options[selector.GetIndex()].GetName() }, content, 6, 1, 400 - (8 * 9), 4, canClose: false);
 			offsetHeightBottom = text.getHeight();
 			offsetHeightTop = 32;
 		}
@@ -142,7 +142,8 @@ namespace RPG
 			{
 				options[i].Draw(sb, i * 16 + 4, 4, i == selector.GetIndex());
 			}
-			commandName = new Hud(new string[] { options[selector.GetIndex()].GetName() }, content, 6, 1, 400-(8*9), 4, canClose: false);
+			if(selector.IndexChanged())
+				commandName = new Hud(new string[] { options[selector.GetIndex()].GetName() }, content, 6, 1, 400-(8*9), 4, canClose: false);
 		}
 
 		void Screen.Draw(SpriteBatch sb)

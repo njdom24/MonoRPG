@@ -1,4 +1,5 @@
 ﻿
+using FarseerPhysics.DebugView;
 using FarseerPhysics.Dynamics;
 using FarseerPhysics.Factories;
 using Microsoft.Xna.Framework;
@@ -22,8 +23,8 @@ namespace RPG
     class Map : Screen
     {
         private Effect effect;
-
-        private KeyboardState prevState;//used by both npcs and textboxes
+		private DebugViewXNA debugView;
+		private KeyboardState prevState;//used by both npcs and textboxes
         private Hud hud;
         private int[][] colArray;
         private NPC[] npcs;
@@ -80,6 +81,10 @@ namespace RPG
             mapRenderer = new TiledMapRenderer(pDevice);
 
             world = new World(new Vector2(0, 0));
+			debugView = new DebugViewXNA(world);
+			debugView.LoadContent(pDevice, content);
+			debugView.AppendFlags(FarseerPhysics.DebugViewFlags.Shape);
+			debugView.AppendFlags(FarseerPhysics.DebugViewFlags.PolygonPoints);
             
             //camera.Position = player.body.Position;
             Console.WriteLine("Scunt: " + tMap.ObjectLayers.Count);
@@ -183,6 +188,10 @@ namespace RPG
             if (speaking)
                 hud.Draw(pSb);
             pSb.End();
+			Matrix proj = Matrix.CreateOrthographicOffCenter(0f, g.Viewport.Width, g.Viewport.Height, 0f, 0f, 1f);
+			Matrix view = camera.GetViewMatrix();
+			debugView.RenderDebugData(ref proj, ref view);
+			//debugView.RenderDebugData(camera.GetViewMatrix(), camera.GetViewMatrix());
         }
 
         void Screen.Update(GameTime gameTime)

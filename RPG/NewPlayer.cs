@@ -19,6 +19,8 @@ namespace RPG
 {
 	class NewPlayer
 	{
+		public float bodyWidth;
+		public float bodyHeight;
 		private bool flipped;
 		//private Animation walkRight;
 		//private Animation walkUp;
@@ -41,19 +43,22 @@ namespace RPG
 		private float speedMult;
 
 		private bool canMove;
-		private Vector2 finalPos;
 		private double runTimer;
 		private bool running;
+		private bool startedRunning;
 
 		private int offsetX;
 		private int offsetY;
 
 		private int colCount;
-		private bool justTouched;
+		public bool touchingWall;
+		public bool touchingAngle;
 
 		public NewPlayer(World world, ContentManager content, int posX, int posY)
 		{
-			justTouched = false;
+			startedRunning = false;
+			touchingAngle = false;
+			touchingWall = false;
 			speedMult = 1;
 			runOffset = 0;
 			running = false;
@@ -61,18 +66,23 @@ namespace RPG
 			canMove = true;
 			flipped = false;
 			//body = new Body(world, new Vector2(0, 0));
-			body = BodyFactory.CreateRectangle(world, ConvertUnits.ToSimUnits(13), ConvertUnits.ToSimUnits(6), 0.1f);
-			//body = BodyFactory.CreateRoundedRectangle(world, ConvertUnits.ToSimUnits(13), ConvertUnits.ToSimUnits(25), ConvertUnits.ToSimUnits(4), ConvertUnits.ToSimUnits(4), 10, 0.1f, Vector2.Zero);
+			bodyWidth = ConvertUnits.ToSimUnits(13);
+			bodyHeight = ConvertUnits.ToSimUnits(6);
+			body = BodyFactory.CreateRectangle(world, bodyWidth, bodyHeight, 0.1f);
+			//body = BodyFactory.CreateRoundedRectangle(world, ConvertUnits.ToSimUnits(13), ConvertUnits.ToSimUnits(6), ConvertUnits.ToSimUnits(3), ConvertUnits.ToSimUnits(2), 2, 0.1f, Vector2.Zero);
 			//body = BodyFactory.CreateRectangle(world, 10, 10, 1, new Vector2(0,0));
 			//body.Position = new Vector2(8 * 31, 23*16);
+			//body = BodyFactory.CreateCircle(world, ConvertUnits.ToSimUnits(7.5f), 1);
+			//body = BodyFactory.CreateEllipse(world, ConvertUnits.ToSimUnits(6.5f), ConvertUnits.ToSimUnits(3), 6, 0.1f);
 			body.BodyType = BodyType.Dynamic;
 			body.Position = ConvertUnits.ToSimUnits(posX * 16, posY * 16);
 			body.Friction = 0;
+			body.FixedRotation = true;
 			//body.Restitution = 0;
 			//body.LinearDamping = 0;
 			body.UserData = this;
 			body.Mass = 0.1f;
-			body.OnCollision += OnCollisionHandler;
+			//body.OnCollision += OnCollisionHandler;
 			x = posX;
 			y = posY;
 			//body.Position = new Vector2(16 * 16, 14 * 16);
@@ -89,7 +99,38 @@ namespace RPG
 		}
 		private bool OnCollisionHandler(Fixture fixtureA, Fixture fixtureB, Contact contact)
 		{
-			Console.WriteLine("Good old fashioned hurgusburgus");
+			
+			Console.WriteLine("Touched: " + fixtureB.Body.UserData);
+			if (contact.IsTouching)
+			{
+				if (fixtureB.Body.UserData == "Spangles")
+					touchingWall = true;
+				if (fixtureB.Body.UserData == "Triangles")
+					touchingAngle = true;
+				if (fixtureB.Body.UserData is NewNPC)
+				{
+					running = false;
+					runOffset = 0;
+					animSpeed = 0.25f;
+					speedMult = 1;
+				}
+				else if (!touchingAngle)
+				{
+					/*
+					running = false;
+					runOffset = 0;
+					animSpeed = 0.25f;
+					speedMult = 1;
+					*/
+				}
+			}
+			/*
+			running = false;
+			runOffset = 0;
+			animSpeed = 0.25f;
+			speedMult = 1;
+			justTouched = true;
+			*/
 			return true;
 		}
 		public override string ToString()
@@ -133,8 +174,9 @@ namespace RPG
 				}
 				else
 				{
-					if (runTimer >= 0.5f)
+					if (runTimer >= 0.5f)// && !justTouched)
 					{
+						startedRunning = true;
 						running = true;
 						runOffset = 5;
 						animSpeed = 0.15f;
@@ -206,6 +248,15 @@ namespace RPG
 
 					if (running)
 					{
+						if(!startedRunning && body.LinearVelocity.LengthSquared() < 0.1f)
+						{
+							Console.WriteLine("Weird stopping mechanism");
+							running = false;
+							runOffset = 0;
+							animSpeed = 0.25f;
+							speedMult = 1;
+						}
+						startedRunning = false;
 						body.LinearVelocity = Vector2.Zero;
 						if (curStateH == HorizontalState.Left)
 							body.LinearVelocity += ConvertUnits.ToSimUnits(-64, 0);
@@ -257,8 +308,8 @@ namespace RPG
 
 				}
 				*/
-			}
 		}
+	}
 
 		public void Move(GameTime gameTime, bool notRunning = true)
 		{
@@ -347,6 +398,16 @@ namespace RPG
 			curStateV = VerticalState.None;
 			prevStateV = VerticalState.None;
 		}
+
+		public HorizontalState getStateH()
+		{
+			return curStateH;
+		}
+		public VerticalState getStateV()
+		{
+			return curStateV;
+		}
+
 		public void Draw(SpriteBatch sb, int mapHeight)
 		{
 			//Console.WriteLine("Shitfuck: " + body.Position.X + ", Fuckshit: " + ConvertUnits.ToDisplayUnits(body.Position.X));
@@ -354,9 +415,9 @@ namespace RPG
 			float zIndex = 1 - ConvertUnits.ToDisplayUnits(body.Position.Y) / mapHeight;
 
 			if (curStateH == HorizontalState.Left)
-				sb.Draw(tex, new Rectangle((int)ConvertUnits.ToDisplayUnits(body.Position.X), (int)ConvertUnits.ToDisplayUnits(body.Position.Y) - 10 - 3, 15, 25), new Rectangle((animIndex + 1 + runOffset + offsetX) * 15, curAnim.offset + offsetY, -15, 25), Color.White, 0, Vector2.Zero, SpriteEffects.None, zIndex);
+				sb.Draw(tex, new Rectangle((int)ConvertUnits.ToDisplayUnits(body.Position.X) + 1, (int)ConvertUnits.ToDisplayUnits(body.Position.Y) - 13, 15, 25), new Rectangle((animIndex + 1 + runOffset + offsetX) * 15, curAnim.offset + offsetY, -15, 25), Color.White, 0, Vector2.Zero, SpriteEffects.None, zIndex);
 			else
-				sb.Draw(tex, new Rectangle((int)ConvertUnits.ToDisplayUnits(body.Position.X), (int)ConvertUnits.ToDisplayUnits(body.Position.Y) - 10 - 3, 15, 25), new Rectangle((animIndex + runOffset + offsetX) * 15, curAnim.offset + offsetY, 15, 25), Color.White, 0, Vector2.Zero, SpriteEffects.None, zIndex);
+				sb.Draw(tex, new Rectangle((int)ConvertUnits.ToDisplayUnits(body.Position.X) + 1, (int)ConvertUnits.ToDisplayUnits(body.Position.Y) - 13, 15, 25), new Rectangle((animIndex + runOffset + offsetX) * 15, curAnim.offset + offsetY, 15, 25), Color.White, 0, Vector2.Zero, SpriteEffects.None, zIndex);
 			//sb.Draw(tex, new Rectangle((int)body.Position.X - (15 - 1) * 8, (int)body.Position.Y - (25 - 1) * 8, 16 * 15, 16 * 25), new Rectangle((animIndex + runOffset) * 15, curAnim.offset, 15, 25)), Color.White);
 		}
 

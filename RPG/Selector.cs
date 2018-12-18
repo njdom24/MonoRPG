@@ -9,25 +9,39 @@ namespace RPG
 {
 	class Selector
 	{
-		private bool horizontal;
+		private Keys increment, decrement;
 		private int current;
 		private int length;
+		private int lastFrameIndex;
 
 		public Selector(int length, bool horizontal = true)
 		{
 			this.length = length;
-			this.horizontal = horizontal;
+			if(horizontal)
+			{
+				increment = Keys.Right;
+				decrement = Keys.Left;
+			}
+			else
+			{
+				increment = Keys.Up;
+				decrement = Keys.Down;
+			}
 			current = 0;
+
+			lastFrameIndex = 0;
 		}
 
 		public void Update(KeyboardState prevState)
 		{
-			if(Keyboard.GetState().IsKeyDown(Keys.Left) && prevState.IsKeyUp(Keys.Left))
+			lastFrameIndex = current;
+
+			if(Keyboard.GetState().IsKeyDown(decrement) && prevState.IsKeyUp(decrement))
 			{
 				if (current-- == 0)
 					current = length-1;
 			}
-			else if (Keyboard.GetState().IsKeyDown(Keys.Right) && prevState.IsKeyUp(Keys.Right))
+			else if (Keyboard.GetState().IsKeyDown(increment) && prevState.IsKeyUp(increment))
 			{
 				if (++current == length)
 					current = 0;
@@ -37,6 +51,12 @@ namespace RPG
 		public int GetIndex()
 		{
 			return current;
+		}
+
+		public bool IndexChanged()
+		{
+			Console.WriteLine(lastFrameIndex);
+			return (lastFrameIndex != current);
 		}
 	}
 }

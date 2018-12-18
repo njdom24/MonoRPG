@@ -1,5 +1,6 @@
-﻿using FarseerPhysics;
+﻿using FarseerPhysics;                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             
 using FarseerPhysics.Dynamics;
+using FarseerPhysics.Dynamics.Contacts;
 using FarseerPhysics.Factories;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
@@ -12,15 +13,16 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static RPG.NewPlayer;
 
 namespace RPG
 {
 	class NewNPC
 	{
+		public float bodyWidth;
+		public float bodyHeight;
 		private bool flipped;
 		private Animation walkDown;
-		public enum VerticalState { Up, Down, None };
-		public enum HorizontalState { Left, Right, None };
 		private VerticalState prevStateV;
 		private VerticalState curStateV;
 		private HorizontalState prevStateH;
@@ -34,44 +36,60 @@ namespace RPG
 		private int steps;
 		private int curStep;
 		private bool backwards;
-		private bool vertical;
-		private double moveTimer;
+		private bool vertical;                         
+		private double moveTimer;                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             
 		private int x;
 		private int y;
-		private bool paused;
+		public bool speaking;
 		public string[] messages;
 		public int textWidth;
 		public int textHeight;
 
-		private bool canMove;
+		public bool touchingPlayer;
 		private bool isMoving;
 		private Vector2 finalPos;
 
 		private int offsetX;
 		private int offsetY;
 
-		public NewNPC(World world, ContentManager content, NewPlayer player, int steps, bool vertical, int posX, int posY, string[] messages, int textWidth = 20, int textHeight = 3)
+		private Fixture leftFixt;
+		public bool touchingLeft, touchingRight, touchingUp, touchingDown;
+
+		public NewNPC(World world, ContentManager content, NewPlayer player, int steps, bool vertical, int posX, int posY, KeyboardState prevState, string[] messages, int textWidth = 20, int textHeight = 3)
 		{
-			offsetY = 27;
+			if (vertical)
+			{
+				offsetX = 0;
+				offsetY = 0;
+			}
+			else
+			{
+				offsetX = 9;
+				offsetY = 27;
+			}
 			this.textWidth = textWidth;
 			this.textHeight = textHeight;
 			this.messages = messages;
-			paused = false;
+			speaking = false;
 			backwards = false;
 			curStep = 1;
 			this.steps = steps;
 			this.vertical = vertical;
 			animSpeed = 0.25f;
 			isMoving = false;
-			canMove = true;
 			this.player = player;
 			flipped = false;
 			//body = new Body(world, new Vector2(0, 0));
-			body = BodyFactory.CreateRectangle(world, ConvertUnits.ToSimUnits(17), ConvertUnits.ToSimUnits(6), 0.1f);
+			bodyWidth = ConvertUnits.ToSimUnits(17);
+			bodyHeight = ConvertUnits.ToSimUnits(6);
+			body = BodyFactory.CreateRectangle(world, bodyWidth, bodyHeight, 0.1f);
+			body.UserData = this;
 			//body = BodyFactory.CreateRectangle(world, 10, 10, 1, new Vector2(0,0));
 			//body.Position = new Vector2(8 * 31, 23*16);
 			body.BodyType = BodyType.Kinematic;
 			body.Position = ConvertUnits.ToSimUnits(posX * 16, posY * 16);
+			body.OnCollision += OnCollisionHandler;
+			//leftFixt = FixtureFactory.AttachEdge(Vector2.Zero, new Vector2(0, 1), body);
 			x = posX;
 			y = posY;
 			tex = content.Load<Texture2D>("Map/Tazmily/Hinawa/Hinawa");
@@ -81,11 +99,95 @@ namespace RPG
 			walkDown = new Animation(0, 3, 0);
 		}
 
+		//Checks the player's directional state on contact to change the NPC's directional state
+		private bool OnCollisionHandler(Fixture fixtureA, Fixture fixtureB, Contact contact)
+		{
+			Console.WriteLine("on collision");
+			NewPlayer temp;
+			if (fixtureA.Body.UserData is NewPlayer)
+				temp = (NewPlayer)fixtureA.Body.UserData;
+			else if (fixtureB.Body.UserData is NewPlayer)
+				temp = (NewPlayer)fixtureB.Body.UserData;
+			else
+			{
+				Console.WriteLine("SCREE");
+				return true;
+			}
+			touchingPlayer = true;
+			touchingUp = false;
+			touchingDown = false;
+			touchingLeft = false;
+			touchingRight = false;
+
+			if (temp.getStateH() == HorizontalState.Left)//turn right
+			{
+				touchingLeft = true;
+				//offsetX = 9;
+				//flipped = false;
+			}
+			else if (temp.getStateH() == HorizontalState.Right)//turn left
+			{
+				touchingRight = true;
+				//flipped = true;
+				//offsetX = 9;
+			}
+
+			if (temp.getStateV() == VerticalState.Down)//turn up
+			{
+				touchingDown = true;
+				//offsetY = 54;
+			}
+			else if (temp.getStateV() == VerticalState.Up)//turn down
+			{
+				touchingUp = true;
+				//offsetY = 0;
+			}
+			//if(temp.getStateH() == )
+			/*
+			touchingLeft = true;
+
+			float distX = temp.body.Position.X - body.Position.X;
+			float distY = temp.body.Position.Y - body.Position.Y;
+
+			distX = Math.Abs(distX) - 0.5f*(bodyWidth + temp.bodyWidth);
+			distY = Math.Abs(distY) - 0.5f*(bodyHeight + temp.bodyHeight);
+			if (distX > distY)
+			{
+				if (temp.body.Position.X > body.Position.X)
+					Console.WriteLine("RIGHT: " + distX);
+				else
+					Console.WriteLine("LEFT: " + distX);
+			}
+			else
+			{
+				if (temp.body.Position.Y > body.Position.Y)
+					Console.WriteLine("DOWN: " + distX);
+				else
+					Console.WriteLine("UP: " + distX);
+			}
+			/*
+			if (temp.body.Position.X < body.Position.X)
+				Console.WriteLine("LEFT");
+			else if (temp.body.Position.X > body.Position.X)
+				Console.WriteLine("RIGHT");
+			else if (temp.body.Position.Y < body.Position.Y)
+				Console.WriteLine("UP");
+			else if (temp.body.Position.Y > body.Position.Y)
+				Console.WriteLine("DOWN");
+			*/
+
+			return true;
+		}
+		public void ResetSpeaking()
+		{
+			speaking = false;
+			if (offsetY >= 3 * 27)
+				offsetY -= 3 * 27;
+		}
 		public void Update(GameTime gameTime)
 		{
-			if (!paused)
+			if (!speaking)
 			{
-				
 				if (steps > 0)
 				{
 					//Vector2 tempPos = new Vector2((body.Position.X), (int)Math.Round(body.Position.Y));
@@ -196,8 +298,25 @@ namespace RPG
 					//tempPos = new Vector2((int)Math.Round(body.Position.X), (int)Math.Round(body.Position.Y));
 					//body.Position = tempPos;
 				}
-			}
 				Move(gameTime);
+			}
+			else
+			{
+				moveTimer += gameTime.ElapsedGameTime.TotalSeconds;
+				if (moveTimer >= 0.2f)
+				{
+					moveTimer = 0;
+					if (offsetY >= 27 * 3)
+					{
+						offsetY -= 3 * 27;
+					}
+					else
+					{
+						offsetY += 3 * 27;
+					}
+				}
+			}
+				
 		}
 
 		public void Move(GameTime gameTime, bool notRunning = true)//SAFE TO ASSUME DOESN'T WORK. WASN'T TESTED WITH NPC
@@ -286,7 +405,7 @@ namespace RPG
 			//Console.WriteLine(zIndex);
 			//Need to add +1 to animIndex if flipped
 			//Console.WriteLine(body.Position * 100);
-			if (curStateH == HorizontalState.Left)
+			if (flipped)
 				sb.Draw(tex, new Rectangle((int)ConvertUnits.ToDisplayUnits(body.Position.X), (int)ConvertUnits.ToDisplayUnits(body.Position.Y) - 10 - 3, 17, 27), new Rectangle((animIndex + 1 + offsetX) * 17, walkDown.offset + offsetY, -17, 27), Color.White, 0, Vector2.Zero, SpriteEffects.None, zIndex);
 			else
 				sb.Draw(tex, new Rectangle((int)ConvertUnits.ToDisplayUnits(body.Position.X), (int)ConvertUnits.ToDisplayUnits(body.Position.Y) - 10 - 3, 17, 27), new Rectangle((animIndex + offsetX) * 17, walkDown.offset + offsetY, 17, 27), Color.White, 0, Vector2.Zero, SpriteEffects.None, zIndex);
@@ -340,39 +459,47 @@ namespace RPG
 			isMoving = true;
 		}
 
-		public bool checkPlayer(NewPlayer.HorizontalState Hstate, NewPlayer.VerticalState Vstate, KeyboardState prevState)
+		public void FacePlayer()
 		{
-			if (Keyboard.GetState().IsKeyDown(Keys.Space) && !prevState.IsKeyDown(Keys.Space))//doesnt check for OOB!
+			moveTimer = 0;
+			if (touchingLeft)//face right
 			{
-				/*
-				if (colArray[y][x + 1] == 2 && Hstate == NewPlayer.HorizontalState.Left)
-				{
-					SetState(State.Right);
-					curAnim = walkLeft;
-					return true;
-				}
-				else if (colArray[y][x - 1] == 2 && Hstate == NewPlayer.HorizontalState.Right)
-				{
-					SetState(State.Left);
-					curAnim = walkLeft;
-					return true;
-				}
-				else if (colArray[y - 1][x] == 2 && Vstate == NewPlayer.VerticalState.Down)
-				{
-					SetState(State.Up);
-					curAnim = walkUp;
-					return true;
-				}
-				else if (colArray[y + 1][x] == 2 && Vstate == NewPlayer.VerticalState.Up)
-				{
-					SetState(State.Down);
-					curAnim = walkDown;
-					return true;
-				}
-				*/
+				Console.WriteLine("left");
+				offsetX = 9;
+				flipped = false;
+			}
+			else if (touchingRight)//face left
+			{
+				Console.WriteLine("right");
+				flipped = true;
+				offsetX = 9;
+			}
+			else
+			{
+				Console.WriteLine("hNone");
+				offsetX = 0;
 			}
 
-			return false;
+			if (touchingDown)//face down
+			{
+				Console.WriteLine("down");
+				offsetY = 54;
+			}
+			else if (touchingUp)//face up
+			{
+				Console.WriteLine("up");
+				offsetY = 0;
+			}
+			else
+			{
+				Console.WriteLine("vNone");
+				offsetY = 27;
+			}
+
+			offsetY += 27 * 3;
+
+			Console.WriteLine("OffsetX: " + offsetX);
+			Console.WriteLine("OffsetY: " + offsetY);
 		}
 
 		public bool isStopped()
