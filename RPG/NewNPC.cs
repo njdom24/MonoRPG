@@ -52,7 +52,6 @@ namespace RPG
 		private int offsetX;
 		private int offsetY;
 
-		private Fixture leftFixt;
 		public bool touchingLeft, touchingRight, touchingUp, touchingDown;
 
 		public NewNPC(World world, ContentManager content, NewPlayer player, int steps, bool vertical, int posX, int posY, KeyboardState prevState, string[] messages, int textWidth = 20, int textHeight = 3)
@@ -64,9 +63,14 @@ namespace RPG
 			}
 			else
 			{
-				offsetX = 9;
-				offsetY = 27;
+				offsetX = 9;//multiplied in draw by width
+				offsetY = 27;//not multiplied, FIX THIS!!!
 			}
+			if(vertical)
+				curStateH = HorizontalState.None;
+			else
+				curStateV = VerticalState.None;
+
 			this.textWidth = textWidth;
 			this.textHeight = textHeight;
 			this.messages = messages;
@@ -81,7 +85,7 @@ namespace RPG
 			flipped = false;
 			//body = new Body(world, new Vector2(0, 0));
 			bodyWidth = ConvertUnits.ToSimUnits(17);
-			bodyHeight = ConvertUnits.ToSimUnits(6);
+			bodyHeight = ConvertUnits.ToSimUnits(13);
 			body = BodyFactory.CreateRectangle(world, bodyWidth, bodyHeight, 0.1f);
 			body.UserData = this;
 			//body = BodyFactory.CreateRectangle(world, 10, 10, 1, new Vector2(0,0));
@@ -119,63 +123,6 @@ namespace RPG
 			touchingLeft = false;
 			touchingRight = false;
 
-			if (temp.getStateH() == HorizontalState.Left)//turn right
-			{
-				touchingLeft = true;
-				//offsetX = 9;
-				//flipped = false;
-			}
-			else if (temp.getStateH() == HorizontalState.Right)//turn left
-			{
-				touchingRight = true;
-				//flipped = true;
-				//offsetX = 9;
-			}
-
-			if (temp.getStateV() == VerticalState.Down)//turn up
-			{
-				touchingDown = true;
-				//offsetY = 54;
-			}
-			else if (temp.getStateV() == VerticalState.Up)//turn down
-			{
-				touchingUp = true;
-				//offsetY = 0;
-			}
-			//if(temp.getStateH() == )
-			/*
-			touchingLeft = true;
-
-			float distX = temp.body.Position.X - body.Position.X;
-			float distY = temp.body.Position.Y - body.Position.Y;
-
-			distX = Math.Abs(distX) - 0.5f*(bodyWidth + temp.bodyWidth);
-			distY = Math.Abs(distY) - 0.5f*(bodyHeight + temp.bodyHeight);
-			if (distX > distY)
-			{
-				if (temp.body.Position.X > body.Position.X)
-					Console.WriteLine("RIGHT: " + distX);
-				else
-					Console.WriteLine("LEFT: " + distX);
-			}
-			else
-			{
-				if (temp.body.Position.Y > body.Position.Y)
-					Console.WriteLine("DOWN: " + distX);
-				else
-					Console.WriteLine("UP: " + distX);
-			}
-			/*
-			if (temp.body.Position.X < body.Position.X)
-				Console.WriteLine("LEFT");
-			else if (temp.body.Position.X > body.Position.X)
-				Console.WriteLine("RIGHT");
-			else if (temp.body.Position.Y < body.Position.Y)
-				Console.WriteLine("UP");
-			else if (temp.body.Position.Y > body.Position.Y)
-				Console.WriteLine("DOWN");
-			*/
-
 			return true;
 		}
 		public void ResetSpeaking()
@@ -183,6 +130,7 @@ namespace RPG
 			speaking = false;
 			if (offsetY >= 3 * 27)
 				offsetY -= 3 * 27;
+			moveTimer = 0;
 		}
 		public void Update(GameTime gameTime)
 		{
@@ -198,26 +146,20 @@ namespace RPG
 						moveTimer += gameTime.ElapsedGameTime.TotalSeconds;
 						if (moveTimer >= 1)
 						{
-							moveTimer -= gameTime.ElapsedGameTime.TotalSeconds;
+							moveTimer = 0;
 							if (vertical)
 							{   
 								if (backwards)
 								{
-									//if (colArray[y + 1][x] != 2)//nothing down
-									{
-										if (--curStep == 1)
-											backwards = false;
-										moveDown();
-									}
+									if (--curStep == 1)
+										backwards = false;
+									moveDown();
 								}
 								else
 								{
-									//if (colArray[y - 1][x] != 2)//nothing up
-									{
-										if (curStep++ == steps)
-											backwards = true;
-										moveUp();
-									}
+									if (curStep++ == steps)
+										backwards = true;
+									moveUp();
 								}
 								
 							}
@@ -226,21 +168,15 @@ namespace RPG
 								
 								if (backwards)
 								{
-									//if (colArray[y][x - 1] != 2)
-									{
-										if (--curStep == 1)
-											backwards = false;
-										moveLeft();
-									}
+									if (--curStep == 1)
+										backwards = false;
+									moveLeft();
 								}
 								else
 								{
-									//if (colArray[y][x + 1] != 2)
-									{
-										if (curStep++ == steps)
-											backwards = true;
-										moveRight();
-									}
+									if (curStep++ == steps)
+										backwards = true;
+									moveRight();
 								}
 								
 							}
@@ -332,58 +268,83 @@ namespace RPG
 					walkDown.advanceFrame();
 				timer = 0;
 			}
-			if (curStateH == HorizontalState.Right && body.LinearVelocity.X > 0)
+			if (curStateH == HorizontalState.Right)// && body.LinearVelocity.X > 0)
 			{
-				hPass = true;
-				flipped = false;
-				//SetStateH(HorizontalState.Right);
-				//curAnim = walkRight;
-				offsetX = 9;
-				//offsetY = 25;
-				//animIndex = (int)State.Left;
-				animIndex = walkDown.getFrame();
+				if (body.LinearVelocity.X > 0)
+				{
+					hPass = true;
+					flipped = false;
+					//SetStateH(HorizontalState.Right);
+					//curAnim = walkRight;
+					offsetX = 9;
+					//offsetY = 25;
+					//animIndex = (int)State.Left;
+					animIndex = walkDown.getFrame();
+				}
 			}
-			else if (curStateH == HorizontalState.Left && body.LinearVelocity.X < 0)
+			else if (curStateH == HorizontalState.Left)// && body.LinearVelocity.X < 0)
 			{
-				hPass = true;
-				flipped = true;
-				//SetStateH(HorizontalState.Left);
-				//curAnim = walkRight;
-				offsetX = 9;
-				//offsetY = 25;
-				//animIndex = (int)State.Left;
-				
-				animIndex = walkDown.getFrame();
-			}
-			if (curStateV == VerticalState.Up && body.LinearVelocity.Y < 0)
-			{
-				flipped = false;
-				//SetStateV(VerticalState.Up);
-				//curAnim = walkUp;
-				//offsetX = 0;
-				offsetY = 54;
-				//animIndex = (int)State.Left;
+				if (body.LinearVelocity.X < 0)
+				{
+					hPass = true;
+					flipped = true;
+					//SetStateH(HorizontalState.Left);
+					//curAnim = walkRight;
+					offsetX = 9;
+					//offsetY = 25;
+					//animIndex = (int)State.Left;
 
-				animIndex = walkDown.getFrame();
+					animIndex = walkDown.getFrame();
+				}
 			}
-			else if (curStateV == VerticalState.Down && body.LinearVelocity.Y > 0)
-			{
-				flipped = false;
-				//SetStateV(VerticalState.Down);
-				//curAnim = walkDown;
-				//offsetX = 0;
-				offsetY = 0;
-				//animIndex = (int)State.Left;
+			else if (moveTimer == 0)//Resets direction when movement begins
+				offsetX = 0;
 
-				animIndex = walkDown.getFrame();
-			}
-			else if (!hPass)
+			if (curStateV == VerticalState.Up)// && body.LinearVelocity.Y < 0)
 			{
-				timer = 0;
-				walkDown.resetStart();
-				animIndex = walkDown.getFrame();//sets current frame to standing animation
-				walkDown.resetEnd();
+				if (body.LinearVelocity.Y < 0)
+				{
+					flipped = false;
+					//SetStateV(VerticalState.Up);
+					//curAnim = walkUp;
+					//offsetX = 0;
+					offsetY = 54;
+					//animIndex = (int)State.Left;
+
+					animIndex = walkDown.getFrame();
+				}
 			}
+			else if (curStateV == VerticalState.Down)// && body.LinearVelocity.Y > 0)
+			{
+				if (body.LinearVelocity.Y > 0)
+				{
+					flipped = false;
+					//SetStateV(VerticalState.Down);
+					//curAnim = walkDown;
+					//offsetX = 0;
+					offsetY = 0;
+					//animIndex = (int)State.Left;
+
+					animIndex = walkDown.getFrame();
+				}
+			}
+			else
+			{
+				if(moveTimer == 0)//Resets direction when movement begins
+					offsetY = 27;
+
+				if (!hPass)
+				{
+					SetStandingAnim();
+				}
+			}
+		}
+		private void SetStandingAnim()
+		{
+			timer = 0;
+			walkDown.resetStart();
+			animIndex = walkDown.getFrame();//sets current frame to standing animation
+			walkDown.resetEnd();
 		}
 		private void SetStateH(HorizontalState s)
 		{
@@ -406,9 +367,9 @@ namespace RPG
 			//Need to add +1 to animIndex if flipped
 			//Console.WriteLine(body.Position * 100);
 			if (flipped)
-				sb.Draw(tex, new Rectangle((int)ConvertUnits.ToDisplayUnits(body.Position.X), (int)ConvertUnits.ToDisplayUnits(body.Position.Y) - 10 - 3, 17, 27), new Rectangle((animIndex + 1 + offsetX) * 17, walkDown.offset + offsetY, -17, 27), Color.White, 0, Vector2.Zero, SpriteEffects.None, zIndex);
+				sb.Draw(tex, new Rectangle((int)ConvertUnits.ToDisplayUnits(body.Position.X), (int)ConvertUnits.ToDisplayUnits(body.Position.Y) - 4, 17, 27), new Rectangle((animIndex + 1 + offsetX) * 17, walkDown.offset + offsetY, -17, 27), Color.White, 0, Vector2.Zero, SpriteEffects.None, zIndex);
 			else
-				sb.Draw(tex, new Rectangle((int)ConvertUnits.ToDisplayUnits(body.Position.X), (int)ConvertUnits.ToDisplayUnits(body.Position.Y) - 10 - 3, 17, 27), new Rectangle((animIndex + offsetX) * 17, walkDown.offset + offsetY, 17, 27), Color.White, 0, Vector2.Zero, SpriteEffects.None, zIndex);
+				sb.Draw(tex, new Rectangle((int)ConvertUnits.ToDisplayUnits(body.Position.X), (int)ConvertUnits.ToDisplayUnits(body.Position.Y) - 4, 17, 27), new Rectangle((animIndex + offsetX) * 17, walkDown.offset + offsetY, 17, 27), Color.White, 0, Vector2.Zero, SpriteEffects.None, zIndex);
 		}
 
 		private void moveUp()
@@ -459,16 +420,16 @@ namespace RPG
 			isMoving = true;
 		}
 
-		public void FacePlayer()
+		public void FacePlayer(HorizontalState playerH, VerticalState playerV)
 		{
 			moveTimer = 0;
-			if (touchingLeft)//face right
+			if (playerH == HorizontalState.Left)//face right
 			{
 				Console.WriteLine("left");
 				offsetX = 9;
 				flipped = false;
 			}
-			else if (touchingRight)//face left
+			else if (playerH == HorizontalState.Right)//face left
 			{
 				Console.WriteLine("right");
 				flipped = true;
@@ -480,12 +441,12 @@ namespace RPG
 				offsetX = 0;
 			}
 
-			if (touchingDown)//face down
+			if (playerV == VerticalState.Down)//face up
 			{
 				Console.WriteLine("down");
 				offsetY = 54;
 			}
-			else if (touchingUp)//face up
+			else if (playerV == VerticalState.Up)//face down
 			{
 				Console.WriteLine("up");
 				offsetY = 0;

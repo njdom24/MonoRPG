@@ -110,7 +110,7 @@ namespace RPG
 			MakeCollisionBodies();
 
 			npcs = new NewNPC[] {
-				new NewNPC(world, content, player, 0, false, 12, 15, prevState, new string[] { "Weebs are worse\nthan fortnite\ngamers.", "Where's the lie?" }),
+				new NewNPC(world, content, player, 1, false, 12, 15, prevState, new string[] { "Weebs are worse\nthan fortnite\ngamers.", "Where's the lie?" }),
 				//new NewNPC(world, content, player, 0, true, 18, 18, new string[] {"help"}, 4, 1)
 			};
 		}
@@ -139,41 +139,6 @@ namespace RPG
 				return;
 
 			tempNPC.touchingPlayer = false;
-		}
-
-		private void OldEndContactHandler(Contact contact)
-		{
-			NewPlayer temp;
-			if (contact.FixtureA.Body.UserData != null && contact.FixtureA.Body.UserData is NewPlayer)
-			{
-				if (contact.FixtureB.Body.UserData == "Triangles")
-				{
-					Console.WriteLine("Disconnected from angle");
-					temp = (NewPlayer)contact.FixtureA.Body.UserData;
-					temp.touchingAngle = false;
-				}
-				else if (contact.FixtureB.Body.UserData == "Spangles")
-				{
-					Console.WriteLine("Disconnected from wall");
-					temp = (NewPlayer)contact.FixtureA.Body.UserData;
-					temp.touchingWall = false;
-				}
-			}
-			else if (contact.FixtureB.Body.UserData != null && contact.FixtureB.Body.UserData is NewPlayer)
-			{
-				if (contact.FixtureA.Body.UserData == "Triangles")
-				{
-					Console.WriteLine("Disconnected from angle");
-					temp = (NewPlayer)contact.FixtureB.Body.UserData;
-					temp.touchingAngle = false;
-				}
-				else if (contact.FixtureA.Body.UserData == "Spangles")
-				{
-					Console.WriteLine("Disconnected from wall");
-					temp = (NewPlayer)contact.FixtureB.Body.UserData;
-					temp.touchingWall = false;
-				}
-			}
 		}
 
 		public void HandleInput(GameTime gameTime)
@@ -246,8 +211,6 @@ namespace RPG
 			Matrix proj = Matrix.CreateOrthographicOffCenter(0f, 400, 240, 0f, 0f, 1f);
 			Matrix view = camera.GetViewMatrix();
 			debugView.RenderDebugData(ref proj, ref view);
-			debugView.BeginCustomDraw(ref proj, ref view);
-			debugView.EndCustomDraw();
 			
 		}
 
@@ -265,20 +228,19 @@ namespace RPG
 				world.Step((float)gameTime.ElapsedGameTime.TotalSeconds);
 				player.Update(gameTime, false);
 				foreach (NewNPC n in npcs)
-					n.Update(gameTime);
-				foreach (NewNPC n in npcs)
 				{
 					if(Keyboard.GetState().IsKeyDown(Keys.Space) && prevState.IsKeyUp(Keys.Space))
 						if (n.isStopped() && n.touchingPlayer)
 						{
 							n.speaking = true;
-							n.FacePlayer();
+							n.FacePlayer(player.getStateH(), player.getStateV());
 							speaking = true;
 							hud = new Hud(n.messages, cont, n.textWidth, n.textHeight);
 						}
 
 					n.Update(gameTime);
 				}
+				
 			}
 			else
 			{

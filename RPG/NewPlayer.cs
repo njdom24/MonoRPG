@@ -24,8 +24,7 @@ namespace RPG
 		private bool flipped;
 		//private Animation walkRight;
 		//private Animation walkUp;
-		private Animation walkDown;
-		private Animation curAnim;
+		private Animation animation;
 		public enum VerticalState { Up, Down, None };
 		public enum HorizontalState { Left, Right, None };
 		private VerticalState prevStateV;
@@ -42,7 +41,6 @@ namespace RPG
 		private int runOffset;
 		private float speedMult;
 
-		private bool canMove;
 		private double runTimer;
 		private bool running;
 		private bool startedRunning;
@@ -50,24 +48,23 @@ namespace RPG
 		private int offsetX;
 		private int offsetY;
 
-		private int colCount;
-		public bool touchingWall;
-		public bool touchingAngle;
+		private int posOffY;
+		private int width;
+		private int height;
 
-		public NewPlayer(World world, ContentManager content, int posX, int posY)
+		public NewPlayer(World world, ContentManager content, int posX, int posY, int width = 15, int height = 25)
 		{
+			this.width = width;
+			this.height = height;
 			startedRunning = false;
-			touchingAngle = false;
-			touchingWall = false;
 			speedMult = 1;
 			runOffset = 0;
 			running = false;
 			animSpeed = 0.25f;
-			canMove = true;
 			flipped = false;
 			//body = new Body(world, new Vector2(0, 0));
-			bodyWidth = ConvertUnits.ToSimUnits(13);
-			bodyHeight = ConvertUnits.ToSimUnits(6);
+			bodyWidth = ConvertUnits.ToSimUnits(width);//15
+			bodyHeight = ConvertUnits.ToSimUnits(height/3);//12
 			body = BodyFactory.CreateRectangle(world, bodyWidth, bodyHeight, 0.1f);
 			//body = BodyFactory.CreateRoundedRectangle(world, ConvertUnits.ToSimUnits(13), ConvertUnits.ToSimUnits(6), ConvertUnits.ToSimUnits(3), ConvertUnits.ToSimUnits(2), 2, 0.1f, Vector2.Zero);
 			//body = BodyFactory.CreateRectangle(world, 10, 10, 1, new Vector2(0,0));
@@ -94,62 +91,18 @@ namespace RPG
 			curStateH = HorizontalState.None;
 			//walkRight = new Animation(9, 12, 25);
 			//walkUp = new Animation(0, 3, 50);
-			walkDown = new Animation(0, 3, 0);
-			curAnim = walkDown;
-		}
-		private bool OnCollisionHandler(Fixture fixtureA, Fixture fixtureB, Contact contact)
-		{
-			
-			Console.WriteLine("Touched: " + fixtureB.Body.UserData);
-			if (contact.IsTouching)
-			{
-				if (fixtureB.Body.UserData == "Spangles")
-					touchingWall = true;
-				if (fixtureB.Body.UserData == "Triangles")
-					touchingAngle = true;
-				if (fixtureB.Body.UserData is NewNPC)
-				{
-					running = false;
-					runOffset = 0;
-					animSpeed = 0.25f;
-					speedMult = 1;
-				}
-				else if (!touchingAngle)
-				{
-					/*
-					running = false;
-					runOffset = 0;
-					animSpeed = 0.25f;
-					speedMult = 1;
-					*/
-				}
-			}
-			/*
-			running = false;
-			runOffset = 0;
-			animSpeed = 0.25f;
-			speedMult = 1;
-			justTouched = true;
-			*/
-			return true;
+			animation = new Animation(0, 3, 0);
+
+			posOffY = (int)((height/3-height) / 2) - 4;
 		}
 		public override string ToString()
 		{
 			return "pureiya";
 		}
-		public void HandleInput()
-		{
-
-		}
 
 		public void Update(GameTime gameTime, bool paused)
 		{
-			//Console.WriteLine(body.Position);
-			//Vector2 tempPos = new Vector2((int)Math.Round(ConvertUnits.ToDisplayUnits(body.Position.X)), (int)Math.Round(ConvertUnits.ToDisplayUnits(body.Position.Y)));//could present physics issues
-			//tempPos.X = ConvertUnits.ToSimUnits(tempPos.X);// * 0.01f;
-			//tempPos.Y = ConvertUnits.ToSimUnits(tempPos.Y);// * 0.01f;
-			//body.Position = tempPos;
-			
+			Console.WriteLine(body.Position*100);
 			if (!paused)
 			{
 				if (Keyboard.GetState().IsKeyDown(Keys.LeftShift))
@@ -159,7 +112,7 @@ namespace RPG
 						runTimer += gameTime.ElapsedGameTime.TotalSeconds;
 						runOffset = 4;
 						body.LinearVelocity = Vector2.Zero;
-						curAnim.resetStart();
+						animation.resetStart();
 						Move(gameTime, false);
 					}
 					else
@@ -184,7 +137,6 @@ namespace RPG
 					}
 					else if (!running)
 					{
-						//running = false;//not needed?
 						runOffset = 0;
 						animSpeed = 0.25f;
 						speedMult = 1;
@@ -226,7 +178,7 @@ namespace RPG
 						if (Keyboard.GetState().IsKeyDown(Keys.Up))// && y > 0)
 						{
 							SetStateV(VerticalState.Up);
-							offsetY = 50;
+							offsetY = 2;
 							body.LinearVelocity += ConvertUnits.ToSimUnits(0, -64);
 
 						}
@@ -238,7 +190,7 @@ namespace RPG
 						}
 						else
 						{
-							offsetY = 25;
+							offsetY = 1;
 							SetStateV(VerticalState.None);
 						}
 						body.LinearVelocity *= speedMult;
@@ -248,7 +200,7 @@ namespace RPG
 
 					if (running)
 					{
-						if(!startedRunning && body.LinearVelocity.LengthSquared() < 0.1f)
+						if (!startedRunning && body.LinearVelocity.LengthSquared() < 0.1f)
 						{
 							Console.WriteLine("Weird stopping mechanism");
 							running = false;
@@ -270,46 +222,10 @@ namespace RPG
 					}
 					Move(gameTime);
 				}
-
-				
-
-				/*
-				if (body.ContactList != null)
-				{
-					//Console.WriteLine("billmus");
-					
-					//body.Position = Vector2.Zero;
-					//do
-					//{
-					if (body.ContactList != null && body.ContactList.Contact.IsTouching)
-					{
-						//Console.WriteLine(colCount++);
-						Console.WriteLine(body.ContactList.Contact.FixtureA.UserData);
-						if(body.ContactList.Contact.FixtureA.UserData != null && body.ContactList.Contact.FixtureB.UserData != null)
-							if (true)//body.ContactList.Contact.FixtureA.UserData.ToString().Equals("polygon") || body.ContactList.Contact.FixtureB.UserData.ToString().Equals("polygon"))
-							{
-								//Console.WriteLine("killmus");
-								if (true)
-								{
-									running = false;
-									runOffset = 0;
-									animSpeed = 0.25f;
-									speedMult = 1;
-									justTouched = true;
-									//break;
-								}
-							}
-							else
-								justTouched = false;
-					}
-					//while (body.ContactList.Next != null);
-
-					
-
-				}
-				*/
+			}
+			else
+				SetStandingAnim();
 		}
-	}
 
 		public void Move(GameTime gameTime, bool notRunning = true)
 		{
@@ -321,7 +237,7 @@ namespace RPG
 			if (timer > animSpeed)
 			{
 				if(notRunning)
-					walkDown.advanceFrame();
+					animation.advanceFrame();
 				timer = 0;
 			}
 			if (curStateH == HorizontalState.Right && ((Keyboard.GetState().IsKeyDown(Keys.Right)) || body.LinearVelocity.X > 0))
@@ -333,7 +249,7 @@ namespace RPG
 				offsetX = 9;
 				//offsetY = 25;
 				//animIndex = (int)State.Left;
-				animIndex = walkDown.getFrame();
+				animIndex = animation.getFrame();
 			}
 			else if (curStateH == HorizontalState.Left && ((Keyboard.GetState().IsKeyDown(Keys.Left)) || body.LinearVelocity.X < 0))
 			{
@@ -345,7 +261,7 @@ namespace RPG
 				//offsetY = 25;
 				//animIndex = (int)State.Left;
 				
-				animIndex = walkDown.getFrame();
+				animIndex = animation.getFrame();
 			}
 			if (curStateV == VerticalState.Up && ((Keyboard.GetState().IsKeyDown(Keys.Up)) || body.LinearVelocity.Y < 0))
 			{
@@ -353,10 +269,10 @@ namespace RPG
 				//SetStateV(VerticalState.Up);
 				//curAnim = walkUp;
 				//offsetX = 0;
-				offsetY = 50;
+				offsetY = 2;
 				//animIndex = (int)State.Left;
 
-				animIndex = walkDown.getFrame();
+				animIndex = animation.getFrame();
 			}
 			else if (curStateV == VerticalState.Down && ((Keyboard.GetState().IsKeyDown(Keys.Down)) || body.LinearVelocity.Y > 0))
 			{
@@ -367,27 +283,31 @@ namespace RPG
 				offsetY = 0;
 				//animIndex = (int)State.Left;
 
-				animIndex = walkDown.getFrame();
+				animIndex = animation.getFrame();
 			}
 			else if (!hPass)
 			{
-				timer = 0;
-				curAnim.resetStart();
-				animIndex = curAnim.getFrame();//sets current frame to standing animation
-				curAnim.resetEnd();
+				SetStandingAnim();
 			}
+		}
+		private void SetStandingAnim()
+		{
+			timer = 0;
+			animation.resetStart();
+			animIndex = animation.getFrame();//sets current frame to standing animation
+			animation.resetEnd();
 		}
 		private void SetStateH(HorizontalState s)
 		{
 			if (prevStateH != curStateH)
-				curAnim.resetEnd();
+				animation.resetEnd();
 			prevStateH = curStateH;
 			curStateH = s;
 		}
 		private void SetStateV(VerticalState s)
 		{
 			if (prevStateV != curStateV)
-				curAnim.resetEnd();
+				animation.resetEnd();
 			prevStateV = curStateV;
 			curStateV = s;
 		}
@@ -415,9 +335,9 @@ namespace RPG
 			float zIndex = 1 - ConvertUnits.ToDisplayUnits(body.Position.Y) / mapHeight;
 
 			if (curStateH == HorizontalState.Left)
-				sb.Draw(tex, new Rectangle((int)ConvertUnits.ToDisplayUnits(body.Position.X) + 1, (int)ConvertUnits.ToDisplayUnits(body.Position.Y) - 13, 15, 25), new Rectangle((animIndex + 1 + runOffset + offsetX) * 15, curAnim.offset + offsetY, -15, 25), Color.White, 0, Vector2.Zero, SpriteEffects.None, zIndex);
+				sb.Draw(tex, new Rectangle((int)(ConvertUnits.ToDisplayUnits(body.Position.X)), (int)(ConvertUnits.ToDisplayUnits(body.Position.Y)) + posOffY, width, height), new Rectangle((animIndex + 1 + runOffset + offsetX) * width, offsetY * height, -width, height), Color.White, 0, Vector2.Zero, SpriteEffects.None, zIndex);
 			else
-				sb.Draw(tex, new Rectangle((int)ConvertUnits.ToDisplayUnits(body.Position.X) + 1, (int)ConvertUnits.ToDisplayUnits(body.Position.Y) - 13, 15, 25), new Rectangle((animIndex + runOffset + offsetX) * 15, curAnim.offset + offsetY, 15, 25), Color.White, 0, Vector2.Zero, SpriteEffects.None, zIndex);
+				sb.Draw(tex, new Rectangle((int)(ConvertUnits.ToDisplayUnits(body.Position.X)), (int)(ConvertUnits.ToDisplayUnits(body.Position.Y)) + posOffY, width, height), new Rectangle((animIndex + runOffset + offsetX) * width, offsetY * height, width, height), Color.White, 0, Vector2.Zero, SpriteEffects.None, zIndex);
 			//sb.Draw(tex, new Rectangle((int)body.Position.X - (15 - 1) * 8, (int)body.Position.Y - (25 - 1) * 8, 16 * 15, 16 * 25), new Rectangle((animIndex + runOffset) * 15, curAnim.offset, 15, 25)), Color.White);
 		}
 

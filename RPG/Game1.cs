@@ -59,8 +59,8 @@ namespace RPG
 			PresentationParameters pp = GraphicsDevice.PresentationParameters;
 			scene = new RenderTarget2D(GraphicsDevice, 400, 240, false, SurfaceFormat.Color, DepthFormat.None, pp.MultiSampleCount, RenderTargetUsage.DiscardContents);
 			//currentScreen = new Map(GraphicsDevice, Content, 16, 16, 10, 10);
-			currentScreen = new Battle(Content, scene, GraphicsDevice, pp);
-			//currentScreen = new NewMap(GraphicsDevice, Content, 48, 48, 10, 10);
+			//currentScreen = new Battle(Content, scene, GraphicsDevice, pp);
+			currentScreen = new NewMap(GraphicsDevice, Content, 48, 48, 10, 10);
 			//currentScreen = new Battle(Content, scene, GraphicsDevice, new RenderTarget2D(GraphicsDevice, 400, 240, false, SurfaceFormat.Color, DepthFormat.None, pp.MultiSampleCount, RenderTargetUsage.DiscardContents));//if things break, look here
 			sb = new SpriteBatch(GraphicsDevice);
 			render = new SpriteBatch(GraphicsDevice);
