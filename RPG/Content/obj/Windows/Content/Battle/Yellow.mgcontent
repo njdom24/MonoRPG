@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PipelineBuildEvent xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-  <SourceFile>C:/Users/Dom32/source/repos/RPG/RPG/Content/Battle/Yellow.PNG</SourceFile>
-  <SourceTime>2018-11-20T01:12:12.1728895-05:00</SourceTime>
-  <DestFile>C:/Users/Dom32/source/repos/RPG/RPG/Content/bin/Windows/Content/Battle/Yellow.xnb</DestFile>
-  <DestTime>2018-11-20T01:12:35.7961016-05:00</DestTime>
+  <SourceFile>C:/Users/njdom324/source/repos/MonoRPG/RPG/Content/Battle/Yellow.PNG</SourceFile>
+  <SourceTime>2018-11-21T17:42:09.0808203-05:00</SourceTime>
+  <DestFile>C:/Users/njdom324/source/repos/MonoRPG/RPG/Content/bin/Windows/Content/Battle/Yellow.xnb</DestFile>
+  <DestTime>2018-12-23T02:12:13.7572944-05:00</DestTime>
   <Importer>TextureImporter</Importer>
   <ImporterTime>2018-09-23T17:55:52-04:00</ImporterTime>
   <Processor>TextureProcessor</Processor>

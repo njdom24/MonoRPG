@@ -32,15 +32,11 @@ namespace RPG
 			this.name = name;
 		}
 
-		public void Draw(SpriteBatch sb, int x, int y, bool selected)
+		public void Draw(SpriteBatch sb, int x, int y)
 		{
-			sb.Begin(sortMode: SpriteSortMode.Immediate);
-			if (!selected)
-			{
-				sb.Draw(smallBorder, new Rectangle(x + 1, y + 1, smallBorder.Width, smallBorder.Height), Color.White);
-				tint.CurrentTechnique.Passes[0].Apply();
-				sb.Draw(image, new Rectangle(x + 1 + 1, y + 1 + 1, image.Width, image.Height), Color.White);
-			}
+			sb.Draw(largeBorder, new Rectangle(x, y, largeBorder.Width, largeBorder.Height), Color.White);
+			sb.Draw(image, new Rectangle(x + 2, y + 2, image.Width, image.Height), Color.White);
+			/*
 			else
 			{
 				sb.Draw(largeBorder, new Rectangle(x, y, largeBorder.Width, largeBorder.Height), Color.White);
@@ -48,6 +44,14 @@ namespace RPG
 			}
 
 			sb.End();
+			*/
+		}
+
+		public void DrawDesaturated(SpriteBatch sb, int x, int y)
+		{
+			sb.Draw(smallBorder, new Rectangle(x + 1, y + 1, smallBorder.Width, smallBorder.Height), Color.White);
+			//tint.CurrentTechnique.Passes[0].Apply();
+			sb.Draw(image, new Rectangle(x + 1 + 1, y + 1 + 1, image.Width, image.Height), Color.White);
 		}
 
 		public string GetName()

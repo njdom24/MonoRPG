@@ -198,8 +198,8 @@ namespace RPG
 			//DrawDebug(pSb);
 			pSb.End();
 			mapRenderer.Draw(tMap.GetLayer("Hills"), camera.GetViewMatrix());
-			pSb.Begin(sortMode: SpriteSortMode.Immediate);
-			effect.CurrentTechnique.Passes[1].Apply();
+			pSb.Begin(effect: effect);//BAD
+			//effect.CurrentTechnique.Passes[1].Apply();
 			if (speaking)
 				hud.Draw(pSb);
 			
@@ -218,7 +218,6 @@ namespace RPG
 		{
 			hud.Update(gameTime, prevState);
 			HandleInput(gameTime);
-			
 
 			mapRenderer.Update(tMap, gameTime);
 

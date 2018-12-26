@@ -13,8 +13,9 @@ namespace RPG
 		private int current;
 		private int length;
 		private int lastFrameIndex;
+		private string[] names;
 
-		public Selector(int length, bool horizontal = true)
+		public Selector(int length, bool horizontal = true, string[] names = null)
 		{
 			this.length = length;
 			if(horizontal)
@@ -30,6 +31,14 @@ namespace RPG
 			current = 0;
 
 			lastFrameIndex = 0;
+
+			if (names == null)
+			{
+				names = new string[length];
+				for (int i = 0; i < names.Length; i++)
+					names[i] = "";
+			}
+			this.names = names;
 		}
 
 		public void Update(KeyboardState prevState)
@@ -55,8 +64,12 @@ namespace RPG
 
 		public bool IndexChanged()
 		{
-			Console.WriteLine(lastFrameIndex);
 			return (lastFrameIndex != current);
+		}
+
+		public string GetName()
+		{
+			return names[current];
 		}
 	}
 }

@@ -8,10 +8,7 @@ float4 PixelShaderFunction(float4 pos : SV_POSITION, float4 color1 : COLOR0, flo
 	if (color.a)
 		if (pos.x > 0)
 		{
-			//color.rgb = 1 - color.rgb;
-			color.r = pos.x/400;
-			color.b = 1-color.r;
-			color = color*2 * mask;
+			color.rgb = 1 - color.rgb;
 		}
 	//color.a = mask.a;
 	return color;

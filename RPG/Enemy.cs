@@ -2,6 +2,7 @@
 using FarseerPhysics.Dynamics;
 using FarseerPhysics.Dynamics;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using System;
@@ -25,8 +26,7 @@ namespace RPG
 		private double threshHold;
 		private bool noteHit;
 		private int noteCount;
-		private Texture2D musicNote;
-		private Texture2D hitMarker;
+		private Texture2D hitEffects;
 		private Body[] noteBodies;
 		private Vector2[] notePositions;
 		private bool[] visibility;
@@ -54,13 +54,14 @@ namespace RPG
 		private int hitX;
 		private int hitY;
 
-		public Enemy(Texture2D sprite, Texture2D musicNote, Texture2D hitMarker, World world, double secondsPerBeat, double threshHold = 0, int offsetTop = 0, int offsetBottom = 0)
+		public Enemy(ContentManager contentManager, World world, double secondsPerBeat, double threshHold = 0, int offsetTop = 0, int offsetBottom = 0)
 		{
 			offsetter = new Random();
 			hitX = 0;
 			hitY = 0;
 			hitTimer = 0;
-			this.hitMarker = hitMarker;
+			sprite = contentManager.Load<Texture2D>("Battle/Enemies/Knight");
+			hitEffects = contentManager.Load<Texture2D>("Battle/Icons/HitEffects");
 			piTimer = 0;
 			noteBodies = new Body[15];
 			notePositions = new Vector2[noteBodies.Length];
@@ -70,7 +71,6 @@ namespace RPG
 			visible = true;
 			noteTimer = 0;
 			notePos = Vector2.Zero;
-			this.musicNote = musicNote;
 			defaultPos = new Vector2((400 - sprite.Width) / 2, (240 - offsetBottom + offsetTop - sprite.Height) / 2);
 			noteHit = true;
 			noteCount = 0;
@@ -85,12 +85,11 @@ namespace RPG
 			body.BodyType = BodyType.Dynamic;
 			body.IgnoreGravity = true;
 			body.Mass = 0.1f;
-			this.sprite = sprite;
 			health = 100;
 			moveTimer = 0.05;
 
-			centerX = (int)defaultPos.X + (sprite.Width - musicNote.Width) / 2 + 6;
-			centerY = (int)defaultPos.Y + (sprite.Height - musicNote.Height) / 2 - 30;
+			centerX = (int)defaultPos.X + (sprite.Width - 10) / 2 + 6;
+			centerY = (int)defaultPos.Y + (sprite.Height - 15) / 2 - 30;
 
 			for (int i = 0; i < noteBodies.Length; i++)
 			{
@@ -103,15 +102,15 @@ namespace RPG
 		public void Draw(SpriteBatch sb, double piTimer, int offsetTop = 0, int offsetBottom = 0)
 		{
 			sb.Draw(sprite, new Rectangle((int)body.Position.X, (int)body.Position.Y, sprite.Width, sprite.Height), Color.White);
-			if(hitTimer > 0)
+			if(hitTimer > 0)//Draw hit marker
 			{
-				sb.Draw(hitMarker, new Rectangle(centerX + hitX, centerY + hitMarker.Height/2 + hitY, hitMarker.Width, hitMarker.Height), Color.White);
+				sb.Draw(hitEffects, new Rectangle(centerX + hitX, centerY + 27/2 + hitY, 27, 27), new Rectangle(10, 0, 27, 27), Color.White);
 			}
-			for (int i = noteBodies.Length-1; i >= 0; i--)
+			for (int i = noteBodies.Length-1; i >= 0; i--)//Draw music note
 			{
 				if (visibility[i])
 				{
-					sb.Draw(musicNote, new Rectangle((int)ConvertUnits.ToDisplayUnits(noteBodies[i].Position.X), (int)ConvertUnits.ToDisplayUnits(noteBodies[i].Position.Y), musicNote.Width, musicNote.Height), Color.White);
+					sb.Draw(hitEffects, new Rectangle((int)ConvertUnits.ToDisplayUnits(noteBodies[i].Position.X), (int)ConvertUnits.ToDisplayUnits(noteBodies[i].Position.Y), 10, 15), new Rectangle(0, 0, 10, 15), Color.White);
 				}
 			}
 			//sb.Draw(musicNote, new Rectangle((int)notePos.X, (int)notePos.Y, musicNote.Width, musicNote.Height), Color.White);
@@ -262,7 +261,7 @@ namespace RPG
 			hitY = offsetter.Next(-10, 10);
 			if(noteCount > 0)
 				visibility[visOrder[noteCount-1]] = true;
-			Console.WriteLine("NoteCount: " + noteCount);
+			//Console.WriteLine("NoteCount: " + noteCount);
 		}
 
 		public override void TakeDamage(int damage, double combatTimer)

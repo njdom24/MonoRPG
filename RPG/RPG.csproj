@@ -72,6 +72,7 @@
     <Compile Include="Game1.cs" />
     <Compile Include="Hud.cs" />
     <Compile Include="Icon.cs" />
+    <Compile Include="Icons.cs" />
     <Compile Include="Map.cs" />
     <Compile Include="NewMap.cs" />
     <Compile Include="NewNPC.cs" />
@@ -88,6 +89,7 @@
     </Compile>
     <Compile Include="Screen.cs" />
     <Compile Include="Selector.cs" />
+    <Compile Include="TestScreen.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="FarseerPhysics MonoGame, Version=3.5.0.40766, Culture=neutral, processorArchitecture=MSIL">

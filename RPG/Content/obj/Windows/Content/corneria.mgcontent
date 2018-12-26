@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PipelineBuildEvent xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-  <SourceFile>C:/Users/Dom32/source/repos/RPG/RPG/Content/corneria.tmx</SourceFile>
-  <SourceTime>2018-11-06T23:34:31.5377818-05:00</SourceTime>
-  <DestFile>C:/Users/Dom32/source/repos/RPG/RPG/Content/bin/Windows/Content/corneria.xnb</DestFile>
-  <DestTime>2018-11-06T23:35:04.8599826-05:00</DestTime>
+  <SourceFile>C:/Users/njdom324/source/repos/MonoRPG/RPG/Content/corneria.tmx</SourceFile>
+  <SourceTime>2018-11-21T17:42:09.1627688-05:00</SourceTime>
+  <DestFile>C:/Users/njdom324/source/repos/MonoRPG/RPG/Content/bin/Windows/Content/corneria.xnb</DestFile>
+  <DestTime>2018-12-23T02:12:13.9821566-05:00</DestTime>
   <Importer>TiledMapImporter</Importer>
   <ImporterTime>2018-05-23T11:26:24-04:00</ImporterTime>
   <Processor>TiledMapProcessor</Processor>

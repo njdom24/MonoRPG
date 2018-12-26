@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PipelineBuildEvent xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-  <SourceFile>C:/Users/Dom32/source/repos/RPG/RPG/Content/Textbox/Chars.png</SourceFile>
-  <SourceTime>2018-11-10T16:05:53.1401631-05:00</SourceTime>
-  <DestFile>C:/Users/Dom32/source/repos/RPG/RPG/Content/bin/Windows/Textbox/Chars.xnb</DestFile>
-  <DestTime>2018-11-18T19:32:56.1756089-05:00</DestTime>
+  <SourceFile>C:/Users/njdom324/source/repos/MonoRPG/RPG/Content/Textbox/Chars.png</SourceFile>
+  <SourceTime>2018-11-21T17:42:09.1557733-05:00</SourceTime>
+  <DestFile>C:/Users/njdom324/source/repos/MonoRPG/RPG/Content/bin/Windows/Textbox/Chars.xnb</DestFile>
+  <DestTime>2018-12-23T20:42:28.8400924-05:00</DestTime>
   <Importer>TextureImporter</Importer>
   <ImporterTime>2018-09-23T17:55:52-04:00</ImporterTime>
   <Processor>TextureProcessor</Processor>

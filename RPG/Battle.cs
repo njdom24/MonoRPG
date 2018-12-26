@@ -31,7 +31,7 @@ namespace RPG
 		private KeyboardState prevState;
 		private ContentManager content;
 		private int MultiSampleCount;
-		private Icon[] options;
+		private Icons options;
 		private Selector selector;
 
 		private World world;
@@ -47,33 +47,40 @@ namespace RPG
 
 		public Battle(ContentManager contentManager, RenderTarget2D final, GraphicsDevice graphicsDevice, PresentationParameters pp)
 		{
+			effect = contentManager.Load<Effect>("Battle/BattleBG");
+			//effect.CurrentTechnique = effect.Techniques[2];
 			combatTimer = 0;
 			threshHold = 0.15;
 			combatIndicator = contentManager.Load<Texture2D>("Battle/Icons/Attack");
 			secondsPerBeat = 0.5f;
 			world = new World(ConvertUnits.ToSimUnits(0,400));
 			waiter = null;
-			options = new Icon[] { new Icon(contentManager, "Attack"), new Icon(contentManager, "Bag"), new Icon(contentManager, "Spells"), new Icon(contentManager, "Run") };
+			options = new Icons(contentManager);
 			blackRect = new Texture2D(graphicsDevice, 1, 1);
 			blackRect.SetData(new Color[] { Color.Black });
-			knight = new Enemy(contentManager.Load<Texture2D>("Battle/Enemies/Knight"), contentManager.Load<Texture2D>("Battle/Icons/MusicNote"), contentManager.Load<Texture2D>("Battle/Icons/HitMarker"), world, secondsPerBeat, threshHold);
+			knight = new Enemy(contentManager, world, secondsPerBeat, threshHold);
 			MultiSampleCount = pp.MultiSampleCount;
+			Texture2D palette = contentManager.Load<Texture2D>("Battle/003Palette");
+			effect.Parameters["palette"].SetValue(palette);
+			effect.Parameters["paletteWidth"].SetValue((float)palette.Width);
+			effect.Parameters["time"].SetValue((float)bgTimer);
 			firstEffect = new RenderTarget2D(graphicsDevice, 400, 240, false, SurfaceFormat.Color, DepthFormat.None, MultiSampleCount, RenderTargetUsage.DiscardContents);
 			secondEffect = new RenderTarget2D(graphicsDevice, 400, 240, false, SurfaceFormat.Color, DepthFormat.None, MultiSampleCount, RenderTargetUsage.DiscardContents);
 			comboEffect = new RenderTarget2D(graphicsDevice, 400, 240, false, SurfaceFormat.Color, DepthFormat.None, MultiSampleCount, RenderTargetUsage.DiscardContents);
 			content = contentManager;
 			prevState = Keyboard.GetState();
-			selector = new Selector(4);
-			background = contentManager.Load<Texture2D>("Battle/BG");
+			selector = new Selector(4, names: new string[] {"Attack", "Bag", "PSI", "Run"});
+			background = contentManager.Load<Texture2D>("Battle/003Atlas");
+			
 			background2 = content.Load<Texture2D>("Battle/Yellow");
-			effect = contentManager.Load<Effect>("Battle/BattleBG");
+			
 			bgTimer = 0;
-			effect.Parameters["time"].SetValue((float)bgTimer);
-			this.final = final;
+			//graphicsDevice.Textures[2] = palette;
+			this.final = final;//required for scaling
 			this.graphicsDevice = graphicsDevice;
 			text = new Hud(new string[] { "hi" }, contentManager, 48, 3, 0, 240-(5*8), canClose: true);
 			text.finishText();
-			commandName = new Hud(new string[] { options[selector.GetIndex()].GetName() }, content, 6, 1, 400 - (8 * 9), 4, canClose: false);
+			commandName = new Hud(new string[] { selector.GetName() }, content, 6, 1, 400 - (8 * 9), 4, canClose: false);
 			offsetHeightBottom = text.getHeight();
 			offsetHeightTop = 32;
 		}
@@ -82,44 +89,25 @@ namespace RPG
 		{
 			graphicsDevice.SetRenderTarget(firstEffect);
 			sb.Begin(sortMode: SpriteSortMode.Immediate);
-			effect.CurrentTechnique.Passes[2].Apply();
+			effect.CurrentTechnique.Passes[0].Apply();
 			graphicsDevice.SamplerStates[0] = SamplerState.PointWrap;
 			sb.Draw(background, new Rectangle(0, 0, 400, 240), Color.White);//Draw to texture
 			sb.End();
 
-			graphicsDevice.SetRenderTarget(secondEffect);
-			sb.Begin(sortMode: SpriteSortMode.Immediate);
-			effect.CurrentTechnique.Passes[0].Apply();
-			graphicsDevice.SamplerStates[0] = SamplerState.PointWrap;
-			sb.Draw(firstEffect, new Rectangle(0, 0, 400, 240), Color.White);//Draw texture to buffer
-			sb.End();
-
-			graphicsDevice.SetRenderTarget(comboEffect);
-			sb.Begin();
-			sb.Draw(secondEffect, new Rectangle(0, 0, 400, 240), Color.White);
-			sb.End();
-
-			///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-			
-			graphicsDevice.SetRenderTarget(firstEffect);
-			sb.Begin(sortMode: SpriteSortMode.Immediate);
-			effect.CurrentTechnique.Passes[2].Apply();
-			graphicsDevice.SamplerStates[0] = SamplerState.PointWrap;
-			sb.Draw(background2, new Rectangle(0, 0, 400, 240), Color.White);//Draw to texture
-			sb.End();
-
+			//////////////////////////////////Second Background///////////////////////////////////
+			/*
 			graphicsDevice.SetRenderTarget(secondEffect);
 			sb.Begin(sortMode: SpriteSortMode.Immediate);
 			effect.CurrentTechnique.Passes[1].Apply();
 			graphicsDevice.SamplerStates[0] = SamplerState.PointWrap;
-			sb.Draw(firstEffect, new Rectangle(0, 0, 400, 240), Color.White);//Draw texture to buffer
+			sb.Draw(background2, new Rectangle(0, 0, 400, 240), Color.White);//Draw to texture
 			sb.End();
-
+			*/
 			graphicsDevice.SetRenderTarget(final);
 			sb.Begin();
-
-			sb.Draw(comboEffect, new Rectangle(0, 0, 400, 240), Color.White);
-			sb.Draw(secondEffect, new Rectangle(0, 0, 400, 240), Color.White * 0.25f);
+			
+			sb.Draw(firstEffect, new Rectangle(0, 0, 400, 240), Color.White * 1f);
+			//sb.Draw(secondEffect, new Rectangle(0, 0, 400, 240), Color.White * 0f);
 			
 			sb.End();
 		}
@@ -136,19 +124,18 @@ namespace RPG
 				if (combatTimer > secondsPerBeat + threshHold)
 					combatTimer = threshHold;
 			}
+			//sb.End();
+
+			options.Draw(sb, selector.GetIndex());
 			sb.End();
 
-			for (int i = 0; i < options.Length; i++)
-			{
-				options[i].Draw(sb, i * 16 + 4, 4, i == selector.GetIndex());
-			}
-			if(selector.IndexChanged())
-				commandName = new Hud(new string[] { options[selector.GetIndex()].GetName() }, content, 6, 1, 400-(8*9), 4, canClose: false);
+			if (selector.IndexChanged())
+				commandName = new Hud(new string[] { selector.GetName() }, content, 6, 1, 400-(8*9), 4, canClose: false);
 		}
 
-		void Screen.Draw(SpriteBatch sb)
+		public void Draw(SpriteBatch sb)
 		{
-			graphicsDevice.Clear(Color.White);
+			//graphicsDevice.Clear(Color.White);
 			DrawBackground(sb);
 			DrawHud(sb);
 
@@ -156,10 +143,9 @@ namespace RPG
 			knight.Draw(sb, bgTimer, offsetHeightTop, offsetHeightBottom);
 			text.Draw(sb);
 			sb.End();
-			
 		}
 
-		void Screen.Update(GameTime gameTime)
+		public void Update(GameTime gameTime)
 		{
 			knight.Update(gameTime);
 			world.Step((float)gameTime.ElapsedGameTime.TotalSeconds);
@@ -208,7 +194,10 @@ namespace RPG
 		{
 			bgTimer += gameTime.ElapsedGameTime.TotalSeconds;
 			if (bgTimer > Math.PI * 2)
-				bgTimer -= 0;
+			{
+				//bgTimer -= Math.PI*2;
+				//Console.WriteLine("Timer reset");
+			}
 			effect.Parameters["time"].SetValue((float)bgTimer);
 		}
 	}
