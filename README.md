@@ -4,7 +4,8 @@ A C# recreation of HAL Labratory's [*Mother 3*](https://earthbound.fandom.com/wi
 
 # Battle System
 <div align="center">
-  <img src='Battle.gif' />
+  <img src='PaletteCycle.gif' />
+  <img src='Interlaced.gif' />
 </div>
 
 # Thanks

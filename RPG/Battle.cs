@@ -48,7 +48,7 @@ namespace RPG
 		public Battle(ContentManager contentManager, RenderTarget2D final, GraphicsDevice graphicsDevice, PresentationParameters pp)
 		{
 			effect = contentManager.Load<Effect>("Battle/BattleBG");
-			//effect.CurrentTechnique = effect.Techniques[2];
+			effect.CurrentTechnique = effect.Techniques[1];
 			combatTimer = 0;
 			threshHold = 0.15;
 			combatIndicator = contentManager.Load<Texture2D>("Battle/Icons/Attack");
@@ -61,8 +61,8 @@ namespace RPG
 			knight = new Enemy(contentManager, world, secondsPerBeat, threshHold);
 			MultiSampleCount = pp.MultiSampleCount;
 			Texture2D palette = contentManager.Load<Texture2D>("Battle/003Palette");
-			effect.Parameters["palette"].SetValue(palette);
-			effect.Parameters["paletteWidth"].SetValue((float)palette.Width);
+			//effect.Parameters["palette"].SetValue(palette);
+			//effect.Parameters["paletteWidth"].SetValue((float)palette.Width);
 			effect.Parameters["time"].SetValue((float)bgTimer);
 			firstEffect = new RenderTarget2D(graphicsDevice, 400, 240, false, SurfaceFormat.Color, DepthFormat.None, MultiSampleCount, RenderTargetUsage.DiscardContents);
 			secondEffect = new RenderTarget2D(graphicsDevice, 400, 240, false, SurfaceFormat.Color, DepthFormat.None, MultiSampleCount, RenderTargetUsage.DiscardContents);
@@ -70,7 +70,7 @@ namespace RPG
 			content = contentManager;
 			prevState = Keyboard.GetState();
 			selector = new Selector(4, names: new string[] {"Attack", "Bag", "PSI", "Run"});
-			background = contentManager.Load<Texture2D>("Battle/003Atlas");
+			background = contentManager.Load<Texture2D>("Battle/005");
 			
 			background2 = content.Load<Texture2D>("Battle/Yellow");
 			

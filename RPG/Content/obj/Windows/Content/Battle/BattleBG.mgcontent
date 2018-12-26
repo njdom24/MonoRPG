@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PipelineBuildEvent xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <SourceFile>C:/Users/njdom324/source/repos/MonoRPG/RPG/Content/Battle/BattleBG.fx</SourceFile>
-  <SourceTime>2018-12-26T02:39:04.7180022-05:00</SourceTime>
+  <SourceTime>2018-12-26T03:00:44.7347472-05:00</SourceTime>
   <DestFile>C:/Users/njdom324/source/repos/MonoRPG/RPG/Content/bin/Windows/Content/Battle/BattleBG.xnb</DestFile>
-  <DestTime>2018-12-26T02:39:07.9178239-05:00</DestTime>
+  <DestTime>2018-12-26T03:01:53.3819742-05:00</DestTime>
   <Importer>EffectImporter</Importer>
   <ImporterTime>2018-09-23T17:55:52-04:00</ImporterTime>
   <Processor>EffectProcessor</Processor>
