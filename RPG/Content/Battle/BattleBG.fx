@@ -120,7 +120,7 @@ float4 Layer3(float4 pos : SV_POSITION, float4 color1 : COLOR0, float2 texCoord 
 	//Distortions
 	texCoord.y = texCoord.y + time * 0.2;
 	texCoord.y = texCoord.y + 0.1*sin(texCoord.y*4 + time * 1);
-	//Maps red color indexes to respective indexes in a palette
+	//Maps color indexes to respective indexes in a palette
 	float4 color = 255.0*tex2D(s0, texCoord) + 3.0;
 	float4 mask = tex2D(paletteSampler, (1.0/paletteWidth)*(color.r + floor(10*time)) + 0.25);
 
@@ -129,12 +129,18 @@ float4 Layer3(float4 pos : SV_POSITION, float4 color1 : COLOR0, float2 texCoord 
 
 float4 Layer5(float4 pos : SV_POSITION, float4 color1 : COLOR0, float2 texCoord : TEXCOORD0) : SV_TARGET0
 {
+	texCoord.y = texCoord.y + time * 0.1;
+	
 	texCoord.x = texCoord.x * (400.0/256.0);
 	texCoord.y = texCoord.y * (240.0/256.0);
+	float2 texCoordLeft = texCoord;
 	//texCoord.x = texCoord.x + time * 1;
 	//float4 color = tex2D(s0, texCoord);
-	texCoord.y = texCoord.y + time * 0.1;
+	
+
+	//INTERLACED METHOD BELOW
 	//if (texCoord.x*256.0 % 2.0 >= -1.0 && texCoord.x*256.0 % 2.0 <= 1.0)//Selects every other vertical line
+	/*
 	if (texCoord.y*256.0 % 2.0 >= -1.0 && texCoord.y*256.0 % 2.0 <= 1.0)
 	{
 		texCoord.x = texCoord.x + 0.2*sin(10 * texCoord.y + time * 2) + 0.1;
@@ -143,8 +149,11 @@ float4 Layer5(float4 pos : SV_POSITION, float4 color1 : COLOR0, float2 texCoord 
 	{
 		texCoord.x = texCoord.x - 0.2*sin(10 * texCoord.y + time * 2) - 0.1;
 	}
+	*/
+	texCoordLeft.x = texCoord.x - 0.2*sin(10 * texCoord.y + time * 2);
+	texCoord.x = texCoord.x + 0.2*sin(10 * texCoord.y + time * 2);
 	
-	float4 color = tex2D(s0, texCoord);
+	float4 color = 0.5*tex2D(s0, texCoord) + 0.5*tex2D(s0, texCoordLeft);
 	
 	return color;
 }

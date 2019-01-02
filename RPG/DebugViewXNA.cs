@@ -133,8 +133,8 @@ namespace FarseerPhysics.DebugView
                 {
                     Transform xf;
                     b.GetTransform(out xf);
-					xf.p.X += 0.08f;
-					xf.p.Y += 0.08f;
+					//xf.p.X += 0.08f;
+					//xf.p.Y += 0.08f;
                     foreach (Fixture f in b.FixtureList)
                     {
                         if (b.Enabled == false)

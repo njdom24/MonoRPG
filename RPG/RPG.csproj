@@ -73,12 +73,13 @@
     <Compile Include="Hud.cs" />
     <Compile Include="Icon.cs" />
     <Compile Include="Icons.cs" />
+    <Compile Include="MapEntity.cs" />
+    <Compile Include="OldMap.cs" />
     <Compile Include="Map.cs" />
-    <Compile Include="NewMap.cs" />
-    <Compile Include="NewNPC.cs" />
-    <Compile Include="NewPlayer.cs" />
     <Compile Include="NPC.cs" />
     <Compile Include="Player.cs" />
+    <Compile Include="OldNPC.cs" />
+    <Compile Include="OldPlayer.cs" />
     <Compile Include="PrimitiveBatch.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
