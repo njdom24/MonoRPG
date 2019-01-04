@@ -147,3 +147,4 @@ C:\Users\njdom324\source\repos\MonoRPG\RPG\bin\x64\Debug\Content\Battle\ByteText
 C:\Users\njdom324\source\repos\MonoRPG\RPG\bin\x64\Debug\Content\Battle\ByteTexturePalette.xnb
 C:\Users\njdom324\source\repos\MonoRPG\RPG\bin\x64\Debug\Content\Battle\003Atlas.xnb
 C:\Users\njdom324\source\repos\MonoRPG\RPG\bin\x64\Debug\Content\Battle\003Palette.xnb
+C:\Users\njdom324\source\repos\MonoRPG\RPG\bin\x64\Debug\Content\Textbox\Text.xnb

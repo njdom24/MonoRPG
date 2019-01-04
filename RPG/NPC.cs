@@ -48,6 +48,7 @@ namespace RPG
 		public bool touchingPlayer;
 		private bool isMoving;
 		private Vector2 finalPos;
+		private bool tempStopped;
 
 		private int offsetX;
 		private int offsetY;
@@ -58,8 +59,9 @@ namespace RPG
 		private int posOffY;
 
 		public bool touchingLeft, touchingRight, touchingUp, touchingDown;
+		private Fixture leftFixt, rightFixt, upFixt, downFixt;
 
-		public NPC(World world, ContentManager content, Player player, int steps, bool vertical, int posX, int posY, KeyboardState prevState, string[] messages, int textWidth = 20, int textHeight = 3, int width = 17, int height = 27)
+		public NPC(World world, ContentManager content, Player player, int steps, bool vertical, int posX, int posY, KeyboardState prevState, string[] messages, int textWidth = 26, int textHeight = 5, int width = 17, int height = 27)
 		{
 			this.width = width;
 			this.height = height;
@@ -100,17 +102,97 @@ namespace RPG
 			body.BodyType = BodyType.Kinematic;
 			body.Position = ConvertUnits.ToSimUnits(posX * 16, posY * 16);
 			body.OnCollision += OnCollisionHandler;
-			//leftFixt = FixtureFactory.AttachEdge(Vector2.Zero, new Vector2(0, 1), body);
+			//body.OnSeparation += EndContactHandler;
+			
+			leftFixt = FixtureFactory.AttachEdge(new Vector2(-bodyWidth/2 - 0.02f, -bodyHeight/2 + 0.01f), new Vector2(-bodyWidth/2 - 0.02f, bodyHeight/2 - 0.01f), body);
+			leftFixt.IsSensor = true;
+			leftFixt.OnCollision += leftHandler;
+			leftFixt.OnSeparation += leftHandlerEnd;
+
+			rightFixt = FixtureFactory.AttachEdge(new Vector2(bodyWidth / 2 + 0.02f, -bodyHeight / 2 + 0.01f), new Vector2(bodyWidth / 2 + 0.02f, bodyHeight / 2 - 0.01f), body);
+			rightFixt.IsSensor = true;
+			rightFixt.OnCollision += rightHandler;
+			rightFixt.OnSeparation += rightHandlerEnd;
+
+			upFixt = FixtureFactory.AttachEdge(new Vector2(-bodyWidth / 2 + 0.01f, -bodyHeight / 2 - 0.02f), new Vector2(bodyWidth / 2 - 0.01f, -bodyHeight / 2 - 0.02f), body);
+			upFixt.IsSensor = true;
+			upFixt.OnCollision += upHandler;
+			rightFixt.OnSeparation += rightHandlerEnd;
+
+			downFixt = FixtureFactory.AttachEdge(new Vector2(-bodyWidth / 2 + 0.01f, bodyHeight / 2 + 0.02f), new Vector2(bodyWidth / 2 - 0.01f, bodyHeight / 2 + 0.02f), body);
+			downFixt.IsSensor = true;
+			downFixt.OnCollision += downHandler;
+			downFixt.OnSeparation += downHandlerEnd;
+			
 			x = posX;
 			y = posY;
 			tex = content.Load<Texture2D>("Map/Tazmily/Hinawa/Hinawa");
 			timer = 0;
 			moveTimer = 0;
+			tempStopped = false;
 
 			walkDown = new Animation(0, 3, 0);
 
 			posOffY = (int)(-height + ConvertUnits.ToDisplayUnits(bodyHeight) / 2);
 			posOffX = (int)(-ConvertUnits.ToDisplayUnits(bodyWidth) / 2);
+		}
+
+		private bool upHandler(Fixture fixtureA, Fixture fixtureB, Contact contact)
+		{
+			Console.WriteLine("Touching Up");
+			touchingUp = true;
+			touchingPlayer = true;
+			return true;
+		}
+		private void upHandlerEnd(Fixture fixtureA, Fixture fixtureB)
+		{
+			touchingUp = false;
+			ReapplyVelocity();
+		}
+
+		private bool downHandler(Fixture fixtureA, Fixture fixtureB, Contact contact)
+		{
+			Console.WriteLine("Touching Down");
+			touchingDown = true;
+			touchingPlayer = true;
+			return true;
+		}
+		private void downHandlerEnd(Fixture fixtureA, Fixture fixtureB)
+		{
+			touchingDown = false;
+			ReapplyVelocity();
+		}
+
+		private bool leftHandler(Fixture fixtureA, Fixture fixtureB, Contact contact)
+		{
+			Console.WriteLine("Touching Left");
+			touchingLeft = true;
+			touchingPlayer = true;
+			return true;
+		}
+		private void leftHandlerEnd(Fixture fixtureA, Fixture fixtureB)
+		{
+			Console.WriteLine("Not touching Left");
+			touchingLeft = false;
+			ReapplyVelocity();
+		}
+
+		private bool rightHandler(Fixture fixtureA, Fixture fixtureB, Contact contact)
+		{
+			Console.WriteLine("Touching Right");
+			touchingRight = true;
+
+			Player tempPlayer= (Player)fixtureB.Body.UserData;
+			
+			//if(tempPlayer.getStateH() == HorizontalState.Left)//This doesn't work because it only checks the original
+			touchingPlayer = true;
+			return true;
+		}
+		private void rightHandlerEnd(Fixture fixtureA, Fixture fixtureB)
+		{
+			Console.WriteLine("RightEnd");
+			touchingRight = false;
+			ReapplyVelocity();
 		}
 
 		//Checks the player's directional state on contact to change the NPC's directional state
@@ -119,20 +201,51 @@ namespace RPG
 			Console.WriteLine("on collision");
 			Player temp;
 			if (fixtureA.Body.UserData is Player)
+			{
+				Console.WriteLine("GOOD");
 				temp = (Player)fixtureA.Body.UserData;
+			}
 			else if (fixtureB.Body.UserData is Player)
+			{
+				Console.WriteLine("BAD");
 				temp = (Player)fixtureB.Body.UserData;
+			}
 			else
 			{
 				Console.WriteLine("SCREE");
 				return true;
 			}
-			touchingPlayer = true;
-			touchingUp = false;
-			touchingDown = false;
-			touchingLeft = false;
-			touchingRight = false;
+			
+			//touchingPlayer = true;
+			/*
+			float distanceX = body.Position.X - temp.body.Position.X;
+			float distanceY = body.Position.Y - temp.body.Position.Y;
+			if (Math.Abs(distanceX) >= bodyWidth / 2 + temp.bodyWidth / 2)
+			{
+				Console.WriteLine("Horizontal: " + distanceX);
+				if (distanceX > 0)
+					touchingLeft = true;
+				else
+					touchingRight = true;
+			}
+			if (Math.Abs(distanceY) >= bodyHeight / 2 + temp.bodyHeight / 2)
+			{
+				Console.WriteLine("Vertical: " + distanceY);
+				if (distanceY > 0)
+					touchingUp = true;
+				else
+					touchingDown = true;
+			}
 
+			if (touchingLeft)
+				Console.WriteLine("Left");
+			if (touchingRight)
+				Console.WriteLine("Right");
+			if (touchingUp)
+				Console.WriteLine("Up");
+			if (touchingDown)
+				Console.WriteLine("Down");
+			*/
 			return true;
 		}
 		public void ResetSpeaking()
@@ -142,6 +255,7 @@ namespace RPG
 				offsetY -= 3 * 27;
 			moveTimer = 0;
 		}
+
 		public void Update(GameTime gameTime)
 		{
 			if (!speaking)
@@ -175,7 +289,6 @@ namespace RPG
 							}
 							else
 							{
-								
 								if (backwards)
 								{
 									if (--curStep == 1)
@@ -188,7 +301,6 @@ namespace RPG
 										backwards = true;
 									moveRight();
 								}
-								
 							}
 						}
 						else
@@ -208,11 +320,22 @@ namespace RPG
 										isMoving = false;
 										body.LinearVelocity = Vector2.Zero;
 									}
+									else if (touchingLeft && !tempStopped)
+									{
+										Console.WriteLine("Fuckin with that velocity");
+										tempStopped = true;
+										body.LinearVelocity = Vector2.Zero;
+									}
 									break;
 								case HorizontalState.Right:
 									if (body.Position.X >= finalPos.X)
 									{
 										isMoving = false;
+										body.LinearVelocity = Vector2.Zero;
+									}
+									else if (touchingRight && !tempStopped)
+									{
+										tempStopped = true;
 										body.LinearVelocity = Vector2.Zero;
 									}
 									break;
@@ -229,11 +352,21 @@ namespace RPG
 										isMoving = false;
 										body.LinearVelocity = Vector2.Zero;
 									}
+									else if (touchingUp && !tempStopped)
+									{
+										tempStopped = true;
+										body.LinearVelocity = Vector2.Zero;
+									}
 									break;
 								case VerticalState.Down:
 									if (body.Position.Y >= finalPos.Y)
 									{
 										isMoving = false;
+										body.LinearVelocity = Vector2.Zero;
+									}
+									else if (touchingDown && !tempStopped)
+									{
+										tempStopped = true;
 										body.LinearVelocity = Vector2.Zero;
 									}
 									break;
@@ -263,6 +396,41 @@ namespace RPG
 				}
 			}
 				
+		}
+
+		private void EndContactHandler(Fixture fixtureA, Fixture fixtureB)//unfinished
+		{
+			Console.WriteLine("end contact");
+			NPC tempNPC;
+			if (fixtureA.Body.UserData is NPC)
+				tempNPC = (NPC)fixtureA.Body.UserData;
+			else if (fixtureB.Body.UserData is NPC)
+				tempNPC = (NPC)fixtureB.Body.UserData;
+			else
+				return;
+
+			tempNPC.ReapplyVelocity();
+		}
+
+		public void ReapplyVelocity()
+		{
+			Console.WriteLine("Reapplying velocity");
+			touchingPlayer = false;
+			touchingUp = false;
+			touchingDown = false;
+			touchingLeft = false;
+			touchingRight = false;
+
+			if(curStateV == VerticalState.Up)
+				body.LinearVelocity = ConvertUnits.ToSimUnits(0, -64);
+			else if (curStateV == VerticalState.Down)
+				body.LinearVelocity = ConvertUnits.ToSimUnits(0, 64);
+			if (curStateH == HorizontalState.Left)
+				body.LinearVelocity = ConvertUnits.ToSimUnits(-64, 0);
+			else if (curStateH == HorizontalState.Right)
+				body.LinearVelocity = ConvertUnits.ToSimUnits(64, 0);
+
+			tempStopped = false;
 		}
 
 		public void Move(GameTime gameTime, bool notRunning = true)//SAFE TO ASSUME DOESN'T WORK. WASN'T TESTED WITH NPC

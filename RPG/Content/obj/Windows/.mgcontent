@@ -44,9 +44,11 @@
     <File>C:/Users/njdom324/source/repos/MonoRPG/RPG/Content/overworld_gutter.png</File>
     <File>C:/Users/njdom324/source/repos/MonoRPG/RPG/Content/overworld_jobs.png</File>
     <File>C:/Users/njdom324/source/repos/MonoRPG/RPG/Content/Textbox/Chars.png</File>
+    <File>C:/Users/njdom324/source/repos/MonoRPG/RPG/Content/Textbox/Text.png</File>
     <File>C:/Users/njdom324/source/repos/MonoRPG/RPG/Content/Textbox/Textbox.png</File>
   </SourceFiles>
   <DestFiles>
+    <File xsi:nil="true" />
     <File xsi:nil="true" />
     <File xsi:nil="true" />
     <File xsi:nil="true" />

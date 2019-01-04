@@ -58,7 +58,7 @@ namespace RPG
 			
 			this.width = width;
 			this.height = height;
-			startedRunning = false;
+			startedRunning = false;//true for the first frame the player runs. serves to allow the player to start running while touching a wall
 			speedMult = 1;
 			runOffset = 0;
 			running = false;
@@ -155,6 +155,29 @@ namespace RPG
 						speedMult = 1;
 					}
 					runTimer = 0;
+					if (running)
+					{
+						//Conditions to stop running
+						if (!startedRunning && body.LinearVelocity.LengthSquared() < 0.1f)
+						{
+							Console.WriteLine("Weird stopping mechanism");
+							running = false;
+							runOffset = 0;
+							animSpeed = 0.25f;
+							speedMult = 1;
+						}
+						startedRunning = false;
+						body.LinearVelocity = Vector2.Zero;
+						if (curStateH == HorizontalState.Left)
+							body.LinearVelocity += ConvertUnits.ToSimUnits(-64, 0);
+						else if (curStateH == HorizontalState.Right)
+							body.LinearVelocity += ConvertUnits.ToSimUnits(64, 0);
+						if (curStateV == VerticalState.Up)
+							body.LinearVelocity += ConvertUnits.ToSimUnits(0, -64);
+						else if (curStateV == VerticalState.Down)
+							body.LinearVelocity += ConvertUnits.ToSimUnits(0, 64);
+						body.LinearVelocity *= speedMult;
+					}
 
 					if (Keyboard.GetState().IsKeyDown(Keys.Up) || Keyboard.GetState().IsKeyDown(Keys.Down) || Keyboard.GetState().IsKeyDown(Keys.Left) || Keyboard.GetState().IsKeyDown(Keys.Right))
 					{
@@ -164,18 +187,8 @@ namespace RPG
 						if (Keyboard.GetState().IsKeyDown(Keys.Right))// && x + 1 < colArray[y].Length)
 						{
 							SetStateH(HorizontalState.Right);
-							//myMap.Camera.Move(new Vector2(2, 0));
-
-							if (false)//colArray[y][x + 1] == 1)// || colArray[y][x + 1] == 3)
-								animSpeed = 0.5f;
-							else
-							{
-								offsetX = 9;
-								//animSpeed = 0.25f;
-								body.LinearVelocity += ConvertUnits.ToSimUnits(64, 0);
-								//colArray[y][x++] = 0;
-								//colArray[y][x] = 2;
-							}
+							offsetX = 9;
+							body.LinearVelocity += ConvertUnits.ToSimUnits(64, 0);
 						}
 						else if (Keyboard.GetState().IsKeyDown(Keys.Left))// && x > 0)
 						{
@@ -210,29 +223,7 @@ namespace RPG
 					}
 					else if (!running)
 						body.LinearVelocity = Vector2.Zero;
-
-					if (running)
-					{
-						if (!startedRunning && body.LinearVelocity.LengthSquared() < 0.1f)
-						{
-							Console.WriteLine("Weird stopping mechanism");
-							running = false;
-							runOffset = 0;
-							animSpeed = 0.25f;
-							speedMult = 1;
-						}
-						startedRunning = false;
-						body.LinearVelocity = Vector2.Zero;
-						if (curStateH == HorizontalState.Left)
-							body.LinearVelocity += ConvertUnits.ToSimUnits(-64, 0);
-						else if (curStateH == HorizontalState.Right)
-							body.LinearVelocity += ConvertUnits.ToSimUnits(64, 0);
-						if (curStateV == VerticalState.Up)
-							body.LinearVelocity += ConvertUnits.ToSimUnits(0, -64);
-						else if (curStateV == VerticalState.Down)
-							body.LinearVelocity += ConvertUnits.ToSimUnits(0, 64);
-						body.LinearVelocity *= speedMult;
-					}
+					
 					Move(gameTime);
 				}
 			}

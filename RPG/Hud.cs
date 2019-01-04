@@ -12,8 +12,7 @@ namespace RPG
 {
     class Hud
     {
-        private Texture2D chars;
-        private Texture2D borders;
+		private Texture2D textbox;
         private string[] messages;
         private Point[][] locations;
         private int width;
@@ -27,9 +26,18 @@ namespace RPG
         private int curMessage;
         private bool visible;
 		private bool canClose;
+		private Dictionary<char, int> charLengths;
+		private int[] lengthRef;
+		private int[][] indeces;
+		private int lineLength;
 
-        public Hud(string[] message, ContentManager content, int width = 18, int height = 3, int posX = -1, int posY = -1, bool canClose = true)
+        public Hud(string[] message, ContentManager content, int width = 26, int height = 5, int posX = -1, int posY = -1, bool canClose = true)
         {
+			lengthRef = new int[] { 2, 2, 3, 2, 5, 9, 7, 2, 3, 3, 3, 5, 2, 2, 2, 4, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 2, 3, 3, 5, 3, 4, 5, 6, 5, 5, 5, 4, 4, 5, 5, 1, 4, 5, 4, 7, 5, 5, 5, 5, 5, 5, 5, 5, 6, 7, 5, 5, 4, 5, 4, 6, 4, 5, 1, 4, 4, 4, 4, 4, 3, 4, 4, 1, 2, 4, 1, 7, 4, 4, 4, 4, 3, 4, 3, 4, 5, 7, 4, 4, 4, 2, 5, 2, 6, 7, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255 };
+			indeces = new int[message.Length][];
+			for(int i = 0; i < indeces.Length; i++)
+				indeces[i] = new int[message[i].Length];
+			lineLength = 0;
 			this.canClose = canClose;
             this.posX = posX;
             this.posY = posY;
@@ -42,15 +50,14 @@ namespace RPG
             if (posX == -1)
             {
                 offsetX = (400 - width * 8) / 2;
-                offsetY = 240 - (height + 2) * 8;
+                offsetY = 240 - (height + 2) * 8 - 4;
             }
             else
             {
                 offsetX = posX;
                 offsetY = posY;
             }
-            this.chars = content.Load<Texture2D>("Textbox/Chars");
-            this.borders = content.Load<Texture2D>("Textbox/Textbox");
+            this.textbox = content.Load<Texture2D>("Textbox/Text");
             this.messages = message;
             //message = message.ToUpper();
             locations = new Point[messages.Length][];//[message.Length];
@@ -60,43 +67,18 @@ namespace RPG
                 for(int j = 0; j < messages[i].Length; j++)
                 {
                     char letter = message[i][j];
-                    if (letter >= 'A' && letter <= 'J')
-                        locations[i][j] = new Point(8 * (letter - 'A'), 0);
-                    else if (letter >= 'K' && letter <= 'U')
-                        locations[i][j] = new Point(8 * (letter - 'K'), 8);
-                    else if (letter >= 'V' && letter <= 'Z')
-                        locations[i][j] = new Point(8 * (letter - 'V'), 16);
-                    else if (letter >= 'a' && letter <= 'e')
-                        locations[i][j] = new Point(40 + 8 * (letter - 'a'), 16);
-                    else if (letter >= 'f' && letter <= 'o')
-                        locations[i][j] = new Point(8 * (letter - 'f'), 24);
-                    else if (letter >= 'p' && letter <= 'z')
-                        locations[i][j] = new Point(8 * (letter - 'p'), 32);
-                    else if (letter == '-')
-                        locations[i][j] = new Point(0, 40);
-                    else if (letter == '"')
-                        locations[i][j] = new Point(8, 40);
-                    else if (letter == '!')
-                        locations[i][j] = new Point(16, 40);
-                    else if (letter == '?')
-                        locations[i][j] = new Point(24, 40);
-                    else if (letter == '\'')
-                        locations[i][j] = new Point(32, 40);
-                    else if (letter == ',')
-                        locations[i][j] = new Point(40, 40);
-                    else if (letter == '.')
-                        locations[i][j] = new Point(48, 40);
-                    else if (letter == '/')
-                        locations[i][j] = new Point(56, 40);
-                    else if (letter == '<')
-                        locations[i][j] = new Point(64, 40);
-                    else if (letter == '>')
-                        locations[i][j] = new Point(72, 40);
-                    else if (letter >= '0' && letter <= '9')
-                        locations[i][j] = new Point(8 * ((int)letter - (int)'0'), 48);
-                    else
-                        locations[i][j] = new Point(80, 0);
-                }
+					int line, off;
+					if (letter != '\n')
+					{
+						//Determinesthe sprite's position based on its distance from the first character in the spritesheet, the space
+						line = (letter - ' ') / 16;
+						off = (letter - ' ') % 16;
+						locations[i][j] = new Point(16 * off, 16 * line);
+						indeces[i][j] = lengthRef[(int)(letter - ' ')] + 1;// + indeces[i][j-1] + 1;
+						if (j > 0)//keeps the offset cumulative
+							indeces[i][j] += indeces[i][j - 1];
+					}
+				}
         }
 
 		public void finishMessage()
@@ -126,6 +108,7 @@ namespace RPG
 							//advance message
                             curMessage++;
                             charCount = 0;
+							lineLength = 0;
                         }
                         else
                         {
@@ -149,7 +132,7 @@ namespace RPG
             {
                 //spacePressedLastFrame = false;
                 timer += gameTime.ElapsedGameTime.TotalSeconds;
-                if (timer >= 0.08)
+                if (timer >= 0.04)
                 {
                     timer = 0;
                     if (charCount < messages[curMessage].Length)
@@ -160,36 +143,38 @@ namespace RPG
         private void DrawBlank(SpriteBatch sb)
         {
             //UL corner
-            sb.Draw(borders, new Rectangle(offsetX, offsetY, 8, 8), new Rectangle(7 * 8, 0, 8, 8), Color.White);
+            sb.Draw(textbox, new Rectangle(offsetX, offsetY, 8, 8), new Rectangle(0, 112, 8, 8), Color.White);
             //BL corner
-            sb.Draw(borders, new Rectangle(offsetX, offsetY + (height + 1) * 8, 8, 8), new Rectangle(2 * 8, 0, 8, 8), Color.White);
+            sb.Draw(textbox, new Rectangle(offsetX, offsetY + (height + 1) * 8, 8, 8), new Rectangle(0, 120, 8, 8), Color.White);
             //UR corner
-            sb.Draw(borders, new Rectangle(offsetX + (width+1)*8, offsetY, 8, 8), new Rectangle(8 * 8, 0, 8, 8), Color.White);
+            sb.Draw(textbox, new Rectangle(offsetX + (width+1)*8, offsetY, 8, 8), new Rectangle(8, 112, 8, 8), Color.White);
             //BR corner
-            sb.Draw(borders, new Rectangle(offsetX + (width+1)*8, offsetY + (height + 1) * 8, 8, 8), new Rectangle(3 * 8, 0, 8, 8), Color.White);
-            //left&right
-            for (int i = 0; i < height; i++)
-            {
-                sb.Draw(borders, new Rectangle(offsetX, offsetY + (i+1)*8, 8, 8), new Rectangle(4 * 8, 0, 8, 8), Color.White);
-                sb.Draw(borders, new Rectangle(offsetX + (width+1)*8, offsetY + (i+1)*8, 8, 8), new Rectangle(5 * 8, 0, 8, 8), Color.White);
-            }
-            
-            //top&bottom
-            for (int i = 0; i < width; i++)
-            {
-                sb.Draw(borders, new Rectangle(offsetX + (i+1) * 8, offsetY, 8, 8), new Rectangle(6 * 8, 0, 8, 8), Color.White);
-                sb.Draw(borders, new Rectangle(offsetX + (i+1) * 8, offsetY + (height+1)*8, 8, 8), new Rectangle(1 * 8, 0, 8, 8), Color.White);
-            }
-            //fill inside with blanks
-            for(int i = 0; i < height; i++)
-            {
-                for(int j = 0; j < width; j++)
-                {
-                    sb.Draw(chars, new Rectangle(offsetX + (j + 1) * 8, offsetY + (i + 1) * 8, 8, 8), new Rectangle(80, 0, 8, 8), Color.White);
-                }
-            }
-            
-        }
+            sb.Draw(textbox, new Rectangle(offsetX + (width+1)*8, offsetY + (height + 1) * 8, 8, 8), new Rectangle(8, 120, 8, 8), Color.White);
+
+			//top&bottom
+			//sb.Draw(textbox, new Rectangle(offsetX + (1) * 8, offsetY, width*8, 8), new Rectangle(16, 112, 1, 8), Color.White);
+			//sb.Draw(textbox, new Rectangle(offsetX + (1) * 8, offsetY + (height + 1) * 8, width*8, 8), new Rectangle(17, 112, 1, 8), Color.White);
+			for (int i = 0; i < width; i++)
+			{
+				sb.Draw(textbox, new Rectangle(offsetX + (i + 1) * 8, offsetY, 8, 8), new Rectangle(16, 112, 8, 8), Color.White);//top
+				sb.Draw(textbox, new Rectangle(offsetX + (i + 1) * 8, offsetY + (height + 1) * 8, 8, 8), new Rectangle(16, 120, 8, 8), Color.White);//bottom
+			}
+
+			//left&right
+			//sb.Draw(textbox, new Rectangle(offsetX, offsetY + (1) * 8, 8, 8*height), new Rectangle(20, 112, 8, 1), Color.White);//left
+			//sb.Draw(textbox, new Rectangle(offsetX + (width+1)*8, offsetY + (1) * 8, 8, 8*height), new Rectangle(26, 112, 8, 1), Color.White);//right
+			for (int i = 0; i < height; i++)
+			{
+				sb.Draw(textbox, new Rectangle(offsetX, offsetY + (i + 1) * 8, 8, 8), new Rectangle(24, 112, 8, 8), Color.White);
+				sb.Draw(textbox, new Rectangle(offsetX + (width + 1) * 8, offsetY + (i + 1) * 8, 8, 8), new Rectangle(24, 120, 8, 8), Color.White);
+			}
+
+
+			//fill inside with black
+			sb.Draw(textbox, new Rectangle(offsetX + 8, offsetY + 8, 8 * width, 8 * height), new Rectangle(8, 120, 1, 1), Color.White);
+			//215, 40
+			//26 * 5
+		}
         public bool isFinished()
         {
             return charCount == messages[curMessage].Length;
@@ -200,22 +185,23 @@ namespace RPG
             if (visible)
             {
                 DrawBlank(sb);
-                int c = 0;
-                for (int i = 0; i < height; i++)
-                    for (int j = 0; j < width; j++)
-                        if (c < charCount)
-                        {
-                            if (messages[curMessage].ElementAt<char>(c) == '\n')
-                            {
-                                i++;
-                                j = -1;
-                            }
-                            else
-                                sb.Draw(chars, new Rectangle(offsetX + (j + 1) * 8, offsetY + (i + 1) * 8, 8, 8), new Rectangle(locations[curMessage][c].X, locations[curMessage][c].Y, 8, 8), Color.White);
-                            c++;
-                        }
-                //sb.Draw(chars, new Rectangle(0, 0, 8, 8), new Rectangle(0, 0, 8, 8), Color.White);
-                //sb.Draw(chars, new Rectangle(8, 0, 8, 8), new Rectangle(32, 0, 8, 8), Color.White);
+				char letter;
+				int lineCount = 0;
+
+				for(int i = 0; i < charCount; i++)
+				{
+					letter = messages[curMessage].ElementAt<char>(i);
+					if (letter == '\n')
+						lineCount++;
+					else
+					{
+						int lineOffset = 0;
+						if (i > 0)
+							lineOffset = indeces[curMessage][i - 1];
+
+						sb.Draw(textbox, new Rectangle(offsetX + 8 + lineOffset * 1, offsetY + lineCount * 12 + 8, 16, 16), new Rectangle(locations[curMessage][i].X, locations[curMessage][i].Y, 16, 16), Color.White);
+					}
+				}
             }
         }
 

@@ -88,7 +88,7 @@ namespace RPG
 
 			world = new World(Vector2.Zero);
 			//world.ContactManager.OnBroadphaseCollision += BroadphaseHandler;
-			world.ContactManager.EndContact += EndContactHandler;
+			//world.ContactManager.EndContact += EndContactHandler;
 			debugView = new DebugViewXNA(world);
 			debugView.LoadContent(pDevice, content);
 			//debugView.AppendFlags(DebugViewFlags.DebugPanel);
@@ -109,7 +109,7 @@ namespace RPG
 			MakeCollisionBodies();
 
 			npcs = new NPC[] {
-				new NPC(world, content, player, 1, false, 12, 15, prevState, new string[] { "Weebs are worse\nthan fortnite\ngamers.", "Where's the lie?" }),
+				new NPC(world, content, player, 1, false, 12, 15, prevState, new string[] { "@Lucas, be sure to wear your gas mask around\nChris Tan. The stench of Melee players knows\nno limit.", "@Where's the lie?" }),
 				//new NewNPC(world, content, player, 0, true, 18, 18, new string[] {"help"}, 4, 1)
 			};
 			entityList.Add(player);
@@ -132,7 +132,7 @@ namespace RPG
 			else
 				return;
 
-			tempNPC.touchingPlayer = false;
+			tempNPC.ReapplyVelocity();
 		}
 
 		public void HandleInput(GameTime gameTime)
@@ -194,19 +194,16 @@ namespace RPG
 			//DrawDebug(pSb);
 			pSb.End();
 			mapRenderer.Draw(tMap.GetLayer("Hills"), camera.GetViewMatrix());
-			pSb.Begin(effect: effect);//BAD
+			pSb.Begin(samplerState: SamplerState.PointClamp);// effect: effect);
 			//effect.CurrentTechnique.Passes[1].Apply();
 			if (speaking)
 				hud.Draw(pSb);
 			
 			pSb.End();
-			pSb.Begin(transformMatrix: Camera.GetViewMatrix());
-			//DrawDebug(pSb);
-			pSb.End();
 
 			Matrix proj = Matrix.CreateOrthographicOffCenter(0f, 400, 240, 0f, 0f, 1f);
 			Matrix view = camera.GetViewMatrix();
-			debugView.RenderDebugData(ref proj, ref view);
+			//debugView.RenderDebugData(ref proj, ref view);
 			
 		}
 
@@ -225,12 +222,16 @@ namespace RPG
 				foreach (NPC n in npcs)
 				{
 					if(Keyboard.GetState().IsKeyDown(Keys.Space) && prevState.IsKeyUp(Keys.Space))
-						if (n.isStopped() && n.touchingPlayer)
+						if (n.body.LinearVelocity == Vector2.Zero && n.touchingPlayer)
 						{
-							n.speaking = true;
-							n.FacePlayer(player.getStateH(), player.getStateV());
-							speaking = true;
-							hud = new Hud(n.messages, cont, n.textWidth, n.textHeight);
+							//Make a check here to ensure the player is facing the NPC
+							if (player.getStateH() == Player.HorizontalState.Left && n.touchingRight || player.getStateH() == Player.HorizontalState.Right && n.touchingLeft || player.getStateV() == Player.VerticalState.Up && n.touchingDown || player.getStateV() == Player.VerticalState.Down && n.touchingUp)
+							{
+								n.speaking = true;
+								n.FacePlayer(player.getStateH(), player.getStateV());
+								speaking = true;
+								hud = new Hud(n.messages, cont, n.textWidth, n.textHeight);
+							}
 						}
 
 					n.Update(gameTime);

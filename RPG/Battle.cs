@@ -61,8 +61,8 @@ namespace RPG
 			knight = new Enemy(contentManager, world, secondsPerBeat, threshHold);
 			MultiSampleCount = pp.MultiSampleCount;
 			Texture2D palette = contentManager.Load<Texture2D>("Battle/003Palette");
-			//effect.Parameters["palette"].SetValue(palette);
-			//effect.Parameters["paletteWidth"].SetValue((float)palette.Width);
+			effect.Parameters["palette"].SetValue(palette);
+			effect.Parameters["paletteWidth"].SetValue((float)palette.Width);
 			effect.Parameters["time"].SetValue((float)bgTimer);
 			firstEffect = new RenderTarget2D(graphicsDevice, 400, 240, false, SurfaceFormat.Color, DepthFormat.None, MultiSampleCount, RenderTargetUsage.DiscardContents);
 			secondEffect = new RenderTarget2D(graphicsDevice, 400, 240, false, SurfaceFormat.Color, DepthFormat.None, MultiSampleCount, RenderTargetUsage.DiscardContents);
