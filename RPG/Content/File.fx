@@ -14,7 +14,7 @@ float4 PixelShaderFunction(float4 pos : SV_POSITION, float4 color1 : COLOR0, flo
 	return color;
 }
 
-float4 TextboxChange(float4 pos : SV_POSITION, float4 color1 : COLOR0, float2 texCoord : TEXCOORD0) : SV_TARGET0
+float4 TextboxChangeOld(float4 pos : SV_POSITION, float4 color1 : COLOR0, float2 texCoord : TEXCOORD0) : SV_TARGET0
 {
 	float4 color = tex2D(s0, texCoord);
 	if (!color.r)
@@ -27,6 +27,27 @@ float4 TextboxChange(float4 pos : SV_POSITION, float4 color1 : COLOR0, float2 te
 		color.r = 0.5;
 		color.g = 0;
 		color.b = 0;
+	}
+	//color.a = mask.a;
+	return color;
+}
+
+float4 TextboxChange(float4 pos : SV_POSITION, float4 color1 : COLOR0, float2 texCoord : TEXCOORD0) : SV_TARGET0
+{
+	float4 color = tex2D(s0, texCoord);
+	if(color.a)
+	{
+		if (color.r < 0.1)
+		{
+			/*
+			color.r = 0;
+			color.g = 0.5;
+			color.b = 0.1;
+			*/
+			color.r = 0.5;
+			color.g = 0;
+			color.b = 0;
+		}
 	}
 	//color.a = mask.a;
 	return color;

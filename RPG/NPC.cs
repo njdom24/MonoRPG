@@ -36,8 +36,8 @@ namespace RPG
 		private int steps;
 		private int curStep;
 		private bool backwards;
-		private bool vertical;                         
-		private double moveTimer;                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             
+		private bool vertical;
+		private double moveTimer;
 		private int x;
 		private int y;
 		public bool speaking;
@@ -75,7 +75,7 @@ namespace RPG
 				offsetX = 9;//multiplied in draw by width
 				offsetY = 27;//not multiplied, FIX THIS!!!
 			}
-			if(vertical)
+			if (vertical)
 				curStateH = HorizontalState.None;
 			else
 				curStateV = VerticalState.None;
@@ -94,7 +94,7 @@ namespace RPG
 			flipped = false;
 			//body = new Body(world, new Vector2(0, 0));
 			bodyWidth = ConvertUnits.ToSimUnits(width);
-			bodyHeight = ConvertUnits.ToSimUnits(height/2);
+			bodyHeight = ConvertUnits.ToSimUnits(height / 2);
 			body = BodyFactory.CreateRectangle(world, bodyWidth, bodyHeight, 0.1f);
 			body.UserData = this;
 			//body = BodyFactory.CreateRectangle(world, 10, 10, 1, new Vector2(0,0));
@@ -103,8 +103,8 @@ namespace RPG
 			body.Position = ConvertUnits.ToSimUnits(posX * 16, posY * 16);
 			body.OnCollision += OnCollisionHandler;
 			//body.OnSeparation += EndContactHandler;
-			
-			leftFixt = FixtureFactory.AttachEdge(new Vector2(-bodyWidth/2 - 0.02f, -bodyHeight/2 + 0.01f), new Vector2(-bodyWidth/2 - 0.02f, bodyHeight/2 - 0.01f), body);
+
+			leftFixt = FixtureFactory.AttachEdge(new Vector2(-bodyWidth / 2 - 0.02f, -bodyHeight / 2 + 0.01f), new Vector2(-bodyWidth / 2 - 0.02f, bodyHeight / 2 - 0.01f), body);
 			leftFixt.IsSensor = true;
 			leftFixt.OnCollision += leftHandler;
 			leftFixt.OnSeparation += leftHandlerEnd;
@@ -123,7 +123,7 @@ namespace RPG
 			downFixt.IsSensor = true;
 			downFixt.OnCollision += downHandler;
 			downFixt.OnSeparation += downHandlerEnd;
-			
+
 			x = posX;
 			y = posY;
 			tex = content.Load<Texture2D>("Map/Tazmily/Hinawa/Hinawa");
@@ -182,8 +182,8 @@ namespace RPG
 			Console.WriteLine("Touching Right");
 			touchingRight = true;
 
-			Player tempPlayer= (Player)fixtureB.Body.UserData;
-			
+			Player tempPlayer = (Player)fixtureB.Body.UserData;
+
 			//if(tempPlayer.getStateH() == HorizontalState.Left)//This doesn't work because it only checks the original
 			touchingPlayer = true;
 			return true;
@@ -215,7 +215,7 @@ namespace RPG
 				Console.WriteLine("SCREE");
 				return true;
 			}
-			
+
 			//touchingPlayer = true;
 			/*
 			float distanceX = body.Position.X - temp.body.Position.X;
@@ -251,6 +251,13 @@ namespace RPG
 		public void ResetSpeaking()
 		{
 			speaking = false;
+			if (offsetY >= 3 * 27)
+				offsetY -= 3 * 27;
+			moveTimer = 0;
+		}
+
+		public void CloseMouth()
+		{
 			if (offsetY >= 3 * 27)
 				offsetY -= 3 * 27;
 			moveTimer = 0;
@@ -379,7 +386,7 @@ namespace RPG
 				}
 				Move(gameTime);
 			}
-			else
+			else//Make character cycle between standing and talking animations
 			{
 				moveTimer += gameTime.ElapsedGameTime.TotalSeconds;
 				if (moveTimer >= 0.2f)
@@ -395,7 +402,6 @@ namespace RPG
 					}
 				}
 			}
-				
 		}
 
 		private void EndContactHandler(Fixture fixtureA, Fixture fixtureB)//unfinished

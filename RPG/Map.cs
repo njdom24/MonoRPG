@@ -50,7 +50,7 @@ namespace RPG
 		public Player player;
 		//private NPC npc;
 		private List<Vector2> verticesList;
-
+		private NPC talkingNPC;
 		private Camera2D camera;
 
 		public Camera2D Camera
@@ -109,7 +109,7 @@ namespace RPG
 			MakeCollisionBodies();
 
 			npcs = new NPC[] {
-				new NPC(world, content, player, 1, false, 12, 15, prevState, new string[] { "@Lucas, be sure to wear your gas mask around\nChris Tan. The stench of Melee players knows\nno limit.", "@Where's the lie?" }),
+				new NPC(world, content, player, 1, false, 12, 15, prevState, new string[] { "@Text line 1.\n  Text line 2.\n  Text line 3.\n@A new text line.", "@Where's the lie?" }),
 				//new NewNPC(world, content, player, 0, true, 18, 18, new string[] {"help"}, 4, 1)
 			};
 			entityList.Add(player);
@@ -209,7 +209,11 @@ namespace RPG
 
 		void Screen.Update(GameTime gameTime)
 		{
-			hud.Update(gameTime, prevState);
+			if(speaking)
+				hud.Update(gameTime, prevState);
+			if (hud.IsWaiting() || hud.isFinished())
+				talkingNPC.CloseMouth();
+
 			HandleInput(gameTime);
 
 			mapRenderer.Update(tMap, gameTime);
@@ -227,6 +231,7 @@ namespace RPG
 							//Make a check here to ensure the player is facing the NPC
 							if (player.getStateH() == Player.HorizontalState.Left && n.touchingRight || player.getStateH() == Player.HorizontalState.Right && n.touchingLeft || player.getStateV() == Player.VerticalState.Up && n.touchingDown || player.getStateV() == Player.VerticalState.Down && n.touchingUp)
 							{
+								talkingNPC = n;
 								n.speaking = true;
 								n.FacePlayer(player.getStateH(), player.getStateV());
 								speaking = true;
@@ -246,8 +251,9 @@ namespace RPG
 				if (hud.messageComplete())
 				{
 					speaking = false;
-					foreach (NPC n in npcs)
-						n.ResetSpeaking();
+					talkingNPC.ResetSpeaking();
+					//foreach (NPC n in npcs)
+						//n.ResetSpeaking();
 				}
 			}
 

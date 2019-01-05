@@ -25,7 +25,10 @@ namespace RPG
 		private Screen currentScreen;
 		private SpriteBatch sb;
 		private SpriteBatch render;
-		private RenderTarget2D scene;
+		private RenderTarget2D original;
+		private RenderTarget2D nearest;
+		private RenderTarget2D bilinear;
+		private Point largestScale;
 		//private Texture2D light;
 
 		//private Texture2D tileset;
@@ -40,10 +43,13 @@ namespace RPG
 			Window.Title = "FF";
 
 			int scale = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width / 600;//400 for full, 800 for half
-			scale = 1;
-			Window.Position = new Point(GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width / 2 - 200 * scale, GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height / 2 - 120 * scale);
-			manager.PreferredBackBufferWidth = 400 * scale;
-			manager.PreferredBackBufferHeight = 240 * scale;
+			//scale = 1;
+			//Window.Position = new Point(GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width / 2 - 200 * scale, GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height / 2 - 120 * scale);
+			Window.Position = new Point(0, 0);
+			manager.PreferredBackBufferWidth = 1920;//400 * scale;
+			manager.PreferredBackBufferHeight = 1080;//240 * scale;
+			largestScale.X = 400 * scale;
+			largestScale.Y = 240 * scale;
 
 			Content.RootDirectory = "Content";
 		}
@@ -58,9 +64,11 @@ namespace RPG
 			//GraphicsDevice.GraphicsProfile = GraphicsProfile.HiDef;
 			GraphicsDevice.DepthStencilState = DepthStencilState.Default;
 			PresentationParameters pp = GraphicsDevice.PresentationParameters;
-			scene = new RenderTarget2D(GraphicsDevice, 400, 240, false, SurfaceFormat.Color, DepthFormat.None, pp.MultiSampleCount, RenderTargetUsage.DiscardContents);
+			original = new RenderTarget2D(GraphicsDevice, 400, 240, false, SurfaceFormat.Color, DepthFormat.None, pp.MultiSampleCount, RenderTargetUsage.DiscardContents);
+			nearest = new RenderTarget2D(GraphicsDevice, largestScale.X, largestScale.Y, false, SurfaceFormat.Color, DepthFormat.None, pp.MultiSampleCount, RenderTargetUsage.DiscardContents);
+			bilinear = new RenderTarget2D(GraphicsDevice, 1920, 1080, false, SurfaceFormat.Color, DepthFormat.None, pp.MultiSampleCount, RenderTargetUsage.DiscardContents);
 			//currentScreen = new OldMap(GraphicsDevice, Content, 16, 16, 10, 10);
-			//currentScreen = new Battle(Content, scene, GraphicsDevice, pp);
+			//currentScreen = new Battle(Content, original, GraphicsDevice, pp);
 			currentScreen = new Map(GraphicsDevice, Content, 48, 48, 10, 10);
 			sb = new SpriteBatch(GraphicsDevice);
 			render = new SpriteBatch(GraphicsDevice);
@@ -72,6 +80,9 @@ namespace RPG
 			//light = Content.Load<Texture2D>("lightmask");
 			//effect = Content.Load<Effect>("File");
 			//effect.Parameters["lightMask"].SetValue(light);
+			Console.WriteLine(Window.ClientBounds.Width);
+			Console.WriteLine(Window.ClientBounds.Height);
+			Console.WriteLine(largestScale.X);
 		}
 
 		/// <summary>
@@ -129,7 +140,7 @@ namespace RPG
 		/// <param name="gameTime">Provides a snapshot of timing values.</param>
 		protected override void Draw(GameTime gameTime)
 		{
-			GraphicsDevice.SetRenderTarget(scene);
+			GraphicsDevice.SetRenderTarget(original);
 			//GraphicsDevice.Clear(Color.CornflowerBlue);
 			GraphicsDevice.SamplerStates[0] = SamplerState.PointWrap;
 
@@ -139,7 +150,7 @@ namespace RPG
 			//sb.Draw(tx, new Rectangle(0, 0, tx.Width, tx.Height), Color.White);
 			//DrawLayer(0, sb);
 			sb.End();
-			GraphicsDevice.SetRenderTarget(null);
+			//GraphicsDevice.SetRenderTarget(null);
 
 			//sb.Begin();
 			//sb.Begin();
@@ -147,11 +158,53 @@ namespace RPG
 
 			//sb.End();
 
-			scaleToDisplay();
+			myScale();
+			//scaleToDisplay();
 
 			// TODO: Add your drawing code here
 
 			//base.Draw(gameTime);
+		}
+
+		//Scales to nearest as high as accuracy allows, then scales the rest with bilinear and as-necessary black bars
+		private void myScale()
+		{
+			Rectangle dst;
+			float outputAspect = Window.ClientBounds.Width / (float)Window.ClientBounds.Height;
+			float preferredAspect = 400 / (float)240;
+			if (outputAspect <= preferredAspect)
+			{
+				// output is taller than it is wider, bars on top/bottom
+				int presentHeight = (int)((Window.ClientBounds.Width / preferredAspect) + 0.5f);
+				int barHeight = (Window.ClientBounds.Height - presentHeight) / 2;
+				dst = new Rectangle(0, barHeight, Window.ClientBounds.Width, presentHeight);
+			}
+			else
+			{
+				// output is wider than it is tall, bars left/right
+				int presentWidth = (int)((Window.ClientBounds.Height * preferredAspect) + 0.5f);
+				int barWidth = (Window.ClientBounds.Width - presentWidth) / 2;
+				dst = new Rectangle(barWidth, 0, presentWidth, Window.ClientBounds.Height);
+			}
+
+
+			//Scale original to highest point
+			GraphicsDevice.SetRenderTarget(nearest);
+			sb.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointClamp, DepthStencilState.None, RasterizerState.CullCounterClockwise);
+			sb.Draw(original, new Rectangle(0, 0, largestScale.X, largestScale.Y), Color.White);
+			sb.End();
+
+			//Scale highest point to full resolution
+			GraphicsDevice.SetRenderTarget(bilinear);
+			sb.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.LinearClamp, DepthStencilState.None, RasterizerState.CullCounterClockwise);
+			sb.Draw(nearest, dst, Color.White);
+			sb.End();
+
+			//Render full resolution image
+			GraphicsDevice.SetRenderTarget(null);
+			sb.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.LinearClamp, DepthStencilState.None, RasterizerState.CullCounterClockwise);
+			sb.Draw(bilinear, new Rectangle(0, 0, Window.ClientBounds.Width, Window.ClientBounds.Height), Color.White);
+			sb.End();
 		}
 
 		private void scaleToDisplay()
@@ -175,7 +228,7 @@ namespace RPG
 			}
 			GraphicsDevice.Clear(ClearOptions.Target, Color.Black, 1.0f, 0);
 			sb.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointClamp, DepthStencilState.None, RasterizerState.CullCounterClockwise);
-			sb.Draw(scene, dst, Color.White);
+			sb.Draw(original, dst, Color.White);
 			sb.End();
 		}
 

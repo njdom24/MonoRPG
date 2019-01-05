@@ -30,14 +30,22 @@ namespace RPG
 		private int[] lengthRef;
 		private int[][] indeces;
 		private int lineLength;
+		private int maxLines;
+		private int linesToShift;
+		private int linesShifted;
+		private bool wait;
 
-        public Hud(string[] message, ContentManager content, int width = 26, int height = 5, int posX = -1, int posY = -1, bool canClose = true)
+        public Hud(string[] message, ContentManager content, int width = 26, int height = 5, int posX = -1, int posY = -1, bool canClose = true, int maxLines = 3)
         {
 			lengthRef = new int[] { 2, 2, 3, 2, 5, 9, 7, 2, 3, 3, 3, 5, 2, 2, 2, 4, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 2, 3, 3, 5, 3, 4, 5, 6, 5, 5, 5, 4, 4, 5, 5, 1, 4, 5, 4, 7, 5, 5, 5, 5, 5, 5, 5, 5, 6, 7, 5, 5, 4, 5, 4, 6, 4, 5, 1, 4, 4, 4, 4, 4, 3, 4, 4, 1, 2, 4, 1, 7, 4, 4, 4, 4, 3, 4, 3, 4, 5, 7, 4, 4, 4, 2, 5, 2, 6, 7, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255 };
 			indeces = new int[message.Length][];
 			for(int i = 0; i < indeces.Length; i++)
 				indeces[i] = new int[message[i].Length];
 			lineLength = 0;
+			this.maxLines = maxLines - 2;
+			linesShifted = 0;
+			linesToShift = 0;
+			wait = false;
 			this.canClose = canClose;
             this.posX = posX;
             this.posY = posY;
@@ -47,17 +55,17 @@ namespace RPG
             timer = 0;
             this.width = width;
             this.height = height;
+
             if (posX == -1)
-            {
-                offsetX = (400 - width * 8) / 2;
-                offsetY = 240 - (height + 2) * 8 - 4;
-            }
+                offsetX = (400 - (width + 2) * 8) / 2;
             else
-            {
                 offsetX = posX;
-                offsetY = posY;
-            }
-            this.textbox = content.Load<Texture2D>("Textbox/Text");
+			if (posY == -1)
+				offsetY = 240 - (height + 2) * 8 - 4;
+			else
+				offsetY = posY;
+
+			this.textbox = content.Load<Texture2D>("Textbox/Text");
             this.messages = message;
             //message = message.ToUpper();
             locations = new Point[messages.Length][];//[message.Length];
@@ -96,50 +104,80 @@ namespace RPG
 		}
 
 		public void Update(GameTime gameTime, KeyboardState prevState)
-        {
-            if (Keyboard.GetState().IsKeyDown(Keys.Space) && !prevState.IsKeyDown(Keys.Space))
-            {
-                if (true)
-                {
-                    if (isFinished())// && curMessage < messages.Length - 1)
-                    {
-                        if (curMessage < messages.Length - 1)
-                        {
+		{
+			if (Keyboard.GetState().IsKeyDown(Keys.Space) && !prevState.IsKeyDown(Keys.Space))
+			{
+				if (wait)
+				{
+					wait = false;
+					if (linesShifted > maxLines)
+						linesToShift++;
+
+					linesShifted++;
+				}
+
+				if (true)
+				{
+					if (isFinished())// && curMessage < messages.Length - 1)
+					{
+						if (curMessage < messages.Length - 1)
+						{
 							//advance message
-                            curMessage++;
-                            charCount = 0;
+							curMessage++;
+							charCount = 0;
 							lineLength = 0;
-                        }
-                        else
-                        {
-                            //close textbox
-                            visible = !canClose;
-                        }
-                    }
-                    else
-                    {
-                        if (charCount < messages[curMessage].Length)
-                        {
-                            //skip text
-                            charCount = messages[curMessage].Length;
-                        }
-                        
-                    }
-                }
-                //spacePressedLastFrame = true;
-            }
-            else
-            {
-                //spacePressedLastFrame = false;
-                timer += gameTime.ElapsedGameTime.TotalSeconds;
-                if (timer >= 0.04)
-                {
-                    timer = 0;
-                    if (charCount < messages[curMessage].Length)
-                        charCount++;
-                }
-            }
-        }
+							linesToShift = 0;
+							linesShifted = 0;
+						}
+						else
+						{
+							//close textbox
+							visible = !canClose;
+						}
+					}
+					else
+					{
+						if (charCount < messages[curMessage].Length)
+						{
+							//skip text
+							//charCount = messages[curMessage].Length;
+
+							//CHANGE TO SKIP LINE
+						}
+					}
+				}
+				//spacePressedLastFrame = true;
+			}
+			else
+			{
+				//spacePressedLastFrame = false;
+				timer += gameTime.ElapsedGameTime.TotalSeconds;
+				if (timer >= 0.04)
+				{
+					timer = 0;
+					int len = messages[curMessage].Length;
+					if (!wait && charCount < len)
+					{
+						if (messages[curMessage].ElementAt(charCount) == '\n')
+						{
+							if (charCount + 1 != len && messages[curMessage].ElementAt(charCount + 1) == '@')
+							{
+								wait = true;
+							}
+							else
+							{
+								if (linesShifted > maxLines)
+									linesToShift++;
+
+								linesShifted++;
+							}
+						}
+						charCount++;
+					}
+					
+				}
+			}
+		}
         private void DrawBlank(SpriteBatch sb)
         {
             //UL corner
@@ -171,7 +209,7 @@ namespace RPG
 
 
 			//fill inside with black
-			sb.Draw(textbox, new Rectangle(offsetX + 8, offsetY + 8, 8 * width, 8 * height), new Rectangle(8, 120, 1, 1), Color.White);
+			sb.Draw(textbox, new Rectangle(offsetX + 8, offsetY + 8, 8 * width, 8 * height), new Rectangle(1, 97, 14, 14), Color.White);
 			//215, 40
 			//26 * 5
 		}
@@ -192,14 +230,16 @@ namespace RPG
 				{
 					letter = messages[curMessage].ElementAt<char>(i);
 					if (letter == '\n')
+					{
 						lineCount++;
-					else
+					}
+					else if(lineCount >= linesToShift)
 					{
 						int lineOffset = 0;
 						if (i > 0)
 							lineOffset = indeces[curMessage][i - 1];
 
-						sb.Draw(textbox, new Rectangle(offsetX + 8 + lineOffset * 1, offsetY + lineCount * 12 + 8, 16, 16), new Rectangle(locations[curMessage][i].X, locations[curMessage][i].Y, 16, 16), Color.White);
+						sb.Draw(textbox, new Rectangle(offsetX + 8 + lineOffset * 1, offsetY + (lineCount - linesToShift) * 12 + 8, 16, 16), new Rectangle(locations[curMessage][i].X, locations[curMessage][i].Y, 16, 16), Color.White);
 					}
 				}
             }
@@ -213,6 +253,11 @@ namespace RPG
 		public int getHeight()
 		{
 			return height * 8;
+		}
+
+		public bool IsWaiting()
+		{
+			return wait;
 		}
     }
 }

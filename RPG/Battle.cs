@@ -80,7 +80,7 @@ namespace RPG
 			this.graphicsDevice = graphicsDevice;
 			text = new Hud(new string[] { "hi" }, contentManager, 48, 3, 0, 240-(5*8), canClose: true);
 			text.finishText();
-			commandName = new Hud(new string[] { selector.GetName() }, content, 6, 1, 400 - (8 * 9), 4, canClose: false);
+			commandName = new Hud(new string[] { selector.GetName() }, content, 6, 1, 400 - (8 * 9), canClose: false);
 			offsetHeightBottom = text.getHeight();
 			offsetHeightTop = 32;
 		}
@@ -185,7 +185,7 @@ namespace RPG
 				{
 					knight.TakeDamage(5, combatTimer);
 					waiter = knight;
-					text = new Hud(new string[] { "Knight has " + knight.health + " health!" }, content, 48, 3, 0, 240 - (5 * 8), canClose: true);
+					text = new Hud(new string[] { "Knight has " + knight.health + " health!" }, content, 48, 3, canClose: true);
 				}
 			}
 		}
