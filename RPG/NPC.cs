@@ -61,7 +61,7 @@ namespace RPG
 		public bool touchingLeft, touchingRight, touchingUp, touchingDown;
 		private Fixture leftFixt, rightFixt, upFixt, downFixt;
 
-		public NPC(World world, ContentManager content, Player player, int steps, bool vertical, int posX, int posY, KeyboardState prevState, string[] messages, int textWidth = 26, int textHeight = 5, int width = 17, int height = 27)
+		public NPC(World world, ContentManager content, Player player, int steps, bool vertical, int posX, int posY, KeyboardState prevState, string[] messages, int textWidth = 26, int textHeight = 3, int width = 17, int height = 27)
 		{
 			this.width = width;
 			this.height = height;
@@ -267,6 +267,8 @@ namespace RPG
 		{
 			if (!speaking)
 			{
+				Console.WriteLine("Gimme steps: " + curStep);
+				Console.WriteLine("Backwards: " + backwards);
 				if (steps > 0)
 				{
 					//Vector2 tempPos = new Vector2((body.Position.X), (int)Math.Round(body.Position.Y));
@@ -274,6 +276,7 @@ namespace RPG
 
 					if (!isMoving)
 					{
+						Console.WriteLine("not moving");
 						moveTimer += gameTime.ElapsedGameTime.TotalSeconds;
 						if (moveTimer >= 1)
 						{

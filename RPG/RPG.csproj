@@ -65,6 +65,7 @@
   <ItemGroup>
     <Compile Include="Animation.cs" />
     <Compile Include="Battle.cs" />
+    <Compile Include="Battler.cs" />
     <Compile Include="Combatant.cs" />
     <Compile Include="Cursor.cs" />
     <Compile Include="DebugViewXNA.cs" />

@@ -30,6 +30,9 @@
     <File>C:/Users/njdom324/source/repos/MonoRPG/RPG/Content/Battle/image.jpg</File>
     <File>C:/Users/njdom324/source/repos/MonoRPG/RPG/Content/Battle/layer.png</File>
     <File>C:/Users/njdom324/source/repos/MonoRPG/RPG/Content/Battle/ManiMani.gif</File>
+    <File>C:/Users/njdom324/source/repos/MonoRPG/RPG/Content/Battle/Numbers/ScrollingNums.png</File>
+    <File>C:/Users/njdom324/source/repos/MonoRPG/RPG/Content/Battle/Player.png</File>
+    <File>C:/Users/njdom324/source/repos/MonoRPG/RPG/Content/Battle/SpriteFlash.fx</File>
     <File>C:/Users/njdom324/source/repos/MonoRPG/RPG/Content/Battle/Yellow.PNG</File>
     <File>C:/Users/njdom324/source/repos/MonoRPG/RPG/Content/corneria.tmx</File>
     <File>C:/Users/njdom324/source/repos/MonoRPG/RPG/Content/Corneria_gutter.png</File>
@@ -48,6 +51,9 @@
     <File>C:/Users/njdom324/source/repos/MonoRPG/RPG/Content/Textbox/Textbox.png</File>
   </SourceFiles>
   <DestFiles>
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
     <File xsi:nil="true" />
     <File xsi:nil="true" />
     <File xsi:nil="true" />

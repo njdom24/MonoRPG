@@ -12,6 +12,7 @@ namespace RPG
 	{
 		protected int maxHealth;
 		public int health;
+		public bool attacked;
 
 		public abstract void TakeDamage(int damage, double combatTimer);
 		public abstract bool IsDone(GameTime gameTime, double combatTimer, KeyboardState prevState);//to be used as an Update()-equivalent that returns true only when an animation (ex. flash) is finished

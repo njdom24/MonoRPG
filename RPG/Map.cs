@@ -109,7 +109,7 @@ namespace RPG
 			MakeCollisionBodies();
 
 			npcs = new NPC[] {
-				new NPC(world, content, player, 1, false, 12, 15, prevState, new string[] { "@Text line 1.\n  Text line 2.\n  Text line 3.\n@A new text line.", "@Where's the lie?" }),
+				new NPC(world, content, player, 1, false, 12, 15, prevState, new string[] { "@You wanna see the special?\n@It's a detective story. Some kind of <Columbo>\n  knock-off.\n@Well, ya interested or not?", "@Get outta here." }),
 				//new NewNPC(world, content, player, 0, true, 18, 18, new string[] {"help"}, 4, 1)
 			};
 			entityList.Add(player);
@@ -211,7 +211,7 @@ namespace RPG
 		{
 			if(speaking)
 				hud.Update(gameTime, prevState);
-			if (hud.IsWaiting() || hud.isFinished())
+			if (hud.IsWaiting() || hud.isFinished() && hud.visible)
 				talkingNPC.CloseMouth();
 
 			HandleInput(gameTime);

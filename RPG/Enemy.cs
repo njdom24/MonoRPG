@@ -227,8 +227,7 @@ namespace RPG
 				ForceFinish();
 				lastForce = 0;
 			}
-			else
-				if (moveTimer < 0)
+			else if (moveTimer < 0)
 			{
 				Jostle(-0.75f);
 				//moveDuration = moveDuration / 1.2;

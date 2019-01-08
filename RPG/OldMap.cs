@@ -183,7 +183,7 @@ namespace RPG
             //DrawDebug(pSb);
             pSb.End();
 
-            pSb.Begin(sortMode: SpriteSortMode.Immediate);
+            pSb.Begin(sortMode: SpriteSortMode.Immediate, samplerState: SamplerState.PointClamp);
             effect.CurrentTechnique.Passes[1].Apply();
             if (speaking)
                 hud.Draw(pSb);

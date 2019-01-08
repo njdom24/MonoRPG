@@ -22,9 +22,10 @@ namespace RPG
         private int posX;
         private int posY;
         private double timer;
+		
         private int charCount;
         private int curMessage;
-        private bool visible;
+        public bool visible;
 		private bool canClose;
 		private Dictionary<char, int> charLengths;
 		private int[] lengthRef;
@@ -35,17 +36,29 @@ namespace RPG
 		private int linesShifted;
 		private bool wait;
 
-        public Hud(string[] message, ContentManager content, int width = 26, int height = 5, int posX = -1, int posY = -1, bool canClose = true, int maxLines = 3)
+		private byte cursorBob;
+		private bool cursorDown;
+		private double cursorTimer;
+
+		private byte textOffset;
+		private byte spacing;
+
+		private byte deathOffX;
+		private Color textColor;
+
+		public Hud(string[] message, ContentManager content, int width = 26, int height = 3, int posX = -1, int posY = -1, bool canClose = true)
         {
 			lengthRef = new int[] { 2, 2, 3, 2, 5, 9, 7, 2, 3, 3, 3, 5, 2, 2, 2, 4, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 2, 3, 3, 5, 3, 4, 5, 6, 5, 5, 5, 4, 4, 5, 5, 1, 4, 5, 4, 7, 5, 5, 5, 5, 5, 5, 5, 5, 6, 7, 5, 5, 4, 5, 4, 6, 4, 5, 1, 4, 4, 4, 4, 4, 3, 4, 4, 1, 2, 4, 1, 7, 4, 4, 4, 4, 3, 4, 3, 4, 5, 7, 4, 4, 4, 2, 5, 2, 6, 7, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255 };
 			indeces = new int[message.Length][];
 			for(int i = 0; i < indeces.Length; i++)
 				indeces[i] = new int[message[i].Length];
 			lineLength = 0;
-			this.maxLines = maxLines - 2;
+			this.maxLines = height - 2;
 			linesShifted = 0;
 			linesToShift = 0;
 			wait = false;
+			cursorBob = 1;
+			cursorDown = true;
 			this.canClose = canClose;
             this.posX = posX;
             this.posY = posY;
@@ -54,7 +67,21 @@ namespace RPG
             charCount = 0;
             timer = 0;
             this.width = width;
+			//this.maxLines = height;
+			height += 2;
             this.height = height;
+			textColor = Color.White;
+
+			if(height % 2 == 0)
+			{
+				textOffset = 9;
+				spacing = 15;
+			}
+			else
+			{
+				textOffset = 7;
+				spacing = 14;
+			}
 
             if (posX == -1)
                 offsetX = (400 - (width + 2) * 8) / 2;
@@ -82,12 +109,30 @@ namespace RPG
 						line = (letter - ' ') / 16;
 						off = (letter - ' ') % 16;
 						locations[i][j] = new Point(16 * off, 16 * line);
-						indeces[i][j] = lengthRef[(int)(letter - ' ')] + 1;// + indeces[i][j-1] + 1;
-						if (j > 0)//keeps the offset cumulative
-							indeces[i][j] += indeces[i][j - 1];
+						if (j < messages[i].Length - 1)
+						{
+							indeces[i][j+1] = lengthRef[(int)(letter - ' ')] + 1;// + indeces[i][j-1] + 1;
+							if (j > 0)//keeps the offset cumulative
+								indeces[i][j+1] += indeces[i][j];
+						}
 					}
 				}
+			//DeathMode(true);
         }
+
+		public void DeathMode(bool enabled)
+		{
+			if (enabled)
+			{
+				deathOffX = 32;
+				textColor = new Color(245, 139, 148);
+			}
+			else
+			{
+				deathOffX = 0;
+				textColor = Color.White;
+			}
+		}
 
 		public void finishMessage()
 		{
@@ -114,6 +159,9 @@ namespace RPG
 						linesToShift++;
 
 					linesShifted++;
+
+					cursorBob = 0;
+					cursorDown = true;
 				}
 
 				if (true)
@@ -150,9 +198,11 @@ namespace RPG
 			}
 			else
 			{
+				
 				//spacePressedLastFrame = false;
 				timer += gameTime.ElapsedGameTime.TotalSeconds;
-				if (timer >= 0.04)
+				cursorTimer += gameTime.ElapsedGameTime.TotalSeconds;
+				if (timer >= 0.015)
 				{
 					timer = 0;
 					int len = messages[curMessage].Length;
@@ -174,28 +224,54 @@ namespace RPG
 						}
 						charCount++;
 					}
-					
+				}
+
+				if(cursorTimer > 0.25)
+				{
+					cursorTimer = 0;
+
+					if (wait || isFinished())
+					{
+						if (cursorDown)
+						{
+							cursorBob++;
+							if (cursorBob > 3)
+							{
+								cursorBob--;
+								cursorDown = false;
+							}
+						}
+						else
+						{
+							cursorBob--;
+							if (cursorBob < 1)
+							{
+								cursorBob++;
+								cursorDown = true;
+							}
+						}
+					}
 				}
 			}
 		}
         private void DrawBlank(SpriteBatch sb)
         {
             //UL corner
-            sb.Draw(textbox, new Rectangle(offsetX, offsetY, 8, 8), new Rectangle(0, 112, 8, 8), Color.White);
+            sb.Draw(textbox, new Rectangle(offsetX, offsetY, 8, 8), new Rectangle(0 + deathOffX, 112, 8, 8), Color.White);
             //BL corner
-            sb.Draw(textbox, new Rectangle(offsetX, offsetY + (height + 1) * 8, 8, 8), new Rectangle(0, 120, 8, 8), Color.White);
+            sb.Draw(textbox, new Rectangle(offsetX, offsetY + (height + 1) * 8, 8, 8), new Rectangle(0 + deathOffX, 120, 8, 8), Color.White);
             //UR corner
-            sb.Draw(textbox, new Rectangle(offsetX + (width+1)*8, offsetY, 8, 8), new Rectangle(8, 112, 8, 8), Color.White);
+            sb.Draw(textbox, new Rectangle(offsetX + (width+1)*8, offsetY, 8, 8), new Rectangle(8 + deathOffX, 112, 8, 8), Color.White);
             //BR corner
-            sb.Draw(textbox, new Rectangle(offsetX + (width+1)*8, offsetY + (height + 1) * 8, 8, 8), new Rectangle(8, 120, 8, 8), Color.White);
+            sb.Draw(textbox, new Rectangle(offsetX + (width+1)*8, offsetY + (height + 1) * 8, 8, 8), new Rectangle(8 + deathOffX, 120, 8, 8), Color.White);
 
 			//top&bottom
 			//sb.Draw(textbox, new Rectangle(offsetX + (1) * 8, offsetY, width*8, 8), new Rectangle(16, 112, 1, 8), Color.White);
 			//sb.Draw(textbox, new Rectangle(offsetX + (1) * 8, offsetY + (height + 1) * 8, width*8, 8), new Rectangle(17, 112, 1, 8), Color.White);
 			for (int i = 0; i < width; i++)
 			{
-				sb.Draw(textbox, new Rectangle(offsetX + (i + 1) * 8, offsetY, 8, 8), new Rectangle(16, 112, 8, 8), Color.White);//top
-				sb.Draw(textbox, new Rectangle(offsetX + (i + 1) * 8, offsetY + (height + 1) * 8, 8, 8), new Rectangle(16, 120, 8, 8), Color.White);//bottom
+				sb.Draw(textbox, new Rectangle(offsetX + (i + 1) * 8, offsetY, 8, 8), new Rectangle(16 + deathOffX, 112, 8, 8), Color.White);//top
+				sb.Draw(textbox, new Rectangle(offsetX + (i + 1) * 8, offsetY + (height + 1) * 8, 8, 8), new Rectangle(16 + deathOffX, 120, 8, 8), Color.White);//bottom
 			}
 
 			//left&right
@@ -203,13 +279,13 @@ namespace RPG
 			//sb.Draw(textbox, new Rectangle(offsetX + (width+1)*8, offsetY + (1) * 8, 8, 8*height), new Rectangle(26, 112, 8, 1), Color.White);//right
 			for (int i = 0; i < height; i++)
 			{
-				sb.Draw(textbox, new Rectangle(offsetX, offsetY + (i + 1) * 8, 8, 8), new Rectangle(24, 112, 8, 8), Color.White);
-				sb.Draw(textbox, new Rectangle(offsetX + (width + 1) * 8, offsetY + (i + 1) * 8, 8, 8), new Rectangle(24, 120, 8, 8), Color.White);
+				sb.Draw(textbox, new Rectangle(offsetX, offsetY + (i + 1) * 8, 8, 8), new Rectangle(24 + deathOffX, 112, 8, 8), Color.White);
+				sb.Draw(textbox, new Rectangle(offsetX + (width + 1) * 8, offsetY + (i + 1) * 8, 8, 8), new Rectangle(24 + deathOffX, 120, 8, 8), Color.White);
 			}
 
 
 			//fill inside with black
-			sb.Draw(textbox, new Rectangle(offsetX + 8, offsetY + 8, 8 * width, 8 * height), new Rectangle(1, 97, 14, 14), Color.White);
+			sb.Draw(textbox, new Rectangle(offsetX + 8, offsetY + 8, 8 * width, 8 * height), new Rectangle(7 + deathOffX, 119, 1, 1), Color.White);
 			//215, 40
 			//26 * 5
 		}
@@ -218,7 +294,7 @@ namespace RPG
             return charCount == messages[curMessage].Length;
         }
  
-        public void Draw(SpriteBatch sb)
+        public void Draw(SpriteBatch sb)//16x96: 7x4
         {
             if (visible)
             {
@@ -235,12 +311,19 @@ namespace RPG
 					}
 					else if(lineCount >= linesToShift)
 					{
-						int lineOffset = 0;
-						if (i > 0)
-							lineOffset = indeces[curMessage][i - 1];
-
-						sb.Draw(textbox, new Rectangle(offsetX + 8 + lineOffset * 1, offsetY + (lineCount - linesToShift) * 12 + 8, 16, 16), new Rectangle(locations[curMessage][i].X, locations[curMessage][i].Y, 16, 16), Color.White);
+						//int lineOffset = 0;
+						//if (i > 0)
+							//lineOffset = indeces[curMessage][i - 1];
+						//3: x14 + 7
+						//2: x15 + 9
+						sb.Draw(textbox, new Rectangle(offsetX + 8 + indeces[curMessage][i], offsetY + (lineCount - linesToShift) * spacing + textOffset, 16, 16), new Rectangle(locations[curMessage][i].X, locations[curMessage][i].Y, 16, 16), textColor);
 					}
+				}
+				//Draws cusor bobbing up and down
+				if(wait || isFinished())
+				{
+					sb.Draw(textbox, new Rectangle(offsetX + width*8, cursorBob + offsetY + height*8, 7, 4), new Rectangle(16, 96, 7, 4), textColor);
+					//Console.WriteLine("Cursor bob: " + cursorBob);
 				}
             }
         }
