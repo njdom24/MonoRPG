@@ -49,8 +49,8 @@ namespace RPG
 			//scale = 1;
 			//Window.Position = new Point(GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width / 2 - 200 * scale, GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height / 2 - 120 * scale);
 			Window.Position = new Point(0, 0);
-			manager.PreferredBackBufferWidth = 1920/2;//400 * scale;
-			manager.PreferredBackBufferHeight = 1080/2;//240 * scale;
+			manager.PreferredBackBufferWidth = 1920/1;//400 * scale;
+			manager.PreferredBackBufferHeight = 1080/1;//240 * scale;
 			largestScale.X = 400 * scale;
 			largestScale.Y = 240 * scale;
 
