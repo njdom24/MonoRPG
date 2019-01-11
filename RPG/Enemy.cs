@@ -54,8 +54,12 @@ namespace RPG
 		private int hitX;
 		private int hitY;
 
+		private Color color;
+		public string deathMessage;
+
 		public Enemy(ContentManager contentManager, World world, double secondsPerBeat, double threshHold = 0, int offsetTop = 0, int offsetBottom = 0)
 		{
+			color = Color.White;
 			offsetter = new Random();
 			hitX = 0;
 			hitY = 0;
@@ -85,8 +89,9 @@ namespace RPG
 			body.BodyType = BodyType.Dynamic;
 			body.IgnoreGravity = true;
 			body.Mass = 0.1f;
-			health = 100;
+			health = 13;
 			moveTimer = 0.05;
+			deathMessage = "@The knight dissipates into hollow armor.";
 
 			centerX = (int)defaultPos.X + (sprite.Width - 10) / 2 + 6;
 			centerY = (int)defaultPos.Y + (sprite.Height - 15) / 2 - 30;
@@ -101,7 +106,7 @@ namespace RPG
 
 		public void Draw(SpriteBatch sb, double piTimer, int offsetTop = 0, int offsetBottom = 0)
 		{
-			sb.Draw(sprite, new Rectangle((int)body.Position.X, (int)body.Position.Y, sprite.Width, sprite.Height), Color.White);
+			sb.Draw(sprite, new Rectangle((int)body.Position.X, (int)body.Position.Y, sprite.Width, sprite.Height), color);
 			if(hitTimer > 0)//Draw hit marker
 			{
 				sb.Draw(hitEffects, new Rectangle(centerX + hitX, centerY + 27/2 + hitY, 27, 27), new Rectangle(10, 0, 27, 27), Color.White);
@@ -237,6 +242,11 @@ namespace RPG
 			
 
 			return false;
+		}
+
+		public void Kill()
+		{
+			color = Color.Transparent;
 		}
 
 		private void MakeVisible()

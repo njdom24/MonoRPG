@@ -11,7 +11,9 @@ namespace RPG
 	abstract class Combatant
 	{
 		protected int maxHealth;
+		protected int maxMagic;
 		public int health;
+		public int magic;
 		public bool attacked;
 
 		public abstract void TakeDamage(int damage, double combatTimer);

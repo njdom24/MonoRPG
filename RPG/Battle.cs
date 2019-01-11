@@ -16,6 +16,7 @@ namespace RPG
 	{
 		private Enemy flasher;
 		private double flashTimer;
+		private float timerMult;
 		private byte flashCounter;
 
 		private Enemy knight;
@@ -24,6 +25,10 @@ namespace RPG
 		private Texture2D blackRect;
 		private Texture2D background;
 		private Texture2D background2;
+		private Texture2D youWon;
+		private bool victory;
+		private double victoryTimer;
+		private Color victoryColor;
 		
 		private Effect effect;
 		private Effect flash;
@@ -54,23 +59,26 @@ namespace RPG
 		private double threshHold;
 		private Texture2D combatIndicator;
 
-		private bool messageBuffered;
 		private int playerMove;
 		private int enemyMove;
 
-		private enum Phase {PlayerPhase, EnemyPhase, AttackPhase, PlayerDeathPhase, EnemyDeathPhase};
+		private enum Phase {IntroPhase, PlayerPhase, SelectTarget, EnemyPhase, AttackPhase, PlayerDeathPhase, EnemyDeathPhase, YouWin};
 		private Phase curPhase;
 		private double turnWaiter;
 
+		private bool deathMessageDisplayed;
+
 		public Battle(ContentManager contentManager, RenderTarget2D final, GraphicsDevice graphicsDevice, PresentationParameters pp)
 		{
-			curPhase = Phase.PlayerPhase;
+			curPhase = Phase.IntroPhase;
 			effect = contentManager.Load<Effect>("Battle/BattleBG");
 			effect.CurrentTechnique = effect.Techniques[1];
 			flash = contentManager.Load<Effect>("Battle/SpriteFlash");
 			combatTimer = 0;
 			threshHold = 0.15;
 			combatIndicator = contentManager.Load<Texture2D>("Battle/Icons/Attack");
+			youWon = contentManager.Load<Texture2D>("Battle/Icons/YouWon");
+			victoryColor = Color.White;
 			secondsPerBeat = 0.5f;
 			world = new World(ConvertUnits.ToSimUnits(0,400));
 			waiter = null;
@@ -99,13 +107,13 @@ namespace RPG
 			//graphicsDevice.Textures[2] = palette;
 			this.final = final;//required for scaling
 			this.graphicsDevice = graphicsDevice;
-			text = new Hud(new string[] { "hi" }, contentManager, 48, 3, 0, 240-(5*8), canClose: true);
-			text.finishText();
+			text = new Hud(new string[] { "@Knight draws near!" }, content, 30, 2, posY: 3, canClose: true);
+			//text.finishText();
 			commandName = new Hud(new string[] { selector.GetName() }, content, 6, 1, 400 - (8 * 9), 4, canClose: false);
 			offsetHeightBottom = text.getHeight();
 			offsetHeightTop = 32;
-			messageBuffered = false;
 			flashCounter = 1;
+			timerMult = 1;
 		}
 
 		public void DrawBackground(SpriteBatch sb)
@@ -159,7 +167,7 @@ namespace RPG
 
 			if (combatTimer > secondsPerBeat - threshHold)// && combatTimer < 0.6)
 			{
-				sb.Draw(combatIndicator, new Rectangle(200 - 12, 4, combatIndicator.Width * 2, combatIndicator.Height * 2), Color.White);
+				//sb.Draw(combatIndicator, new Rectangle(200 - 12, 4, combatIndicator.Width * 2, combatIndicator.Height * 2), Color.White);
 				if (combatTimer > secondsPerBeat + threshHold)
 					combatTimer = threshHold;
 			}
@@ -190,7 +198,13 @@ namespace RPG
 
 			travis.Draw(sb);
 			//if(waiter == null)// || messageBuffered)
-			text.Draw(sb);
+			if(!victory || turnWaiter > 0.4)
+				text.Draw(sb);
+
+			if(victory && turnWaiter > 0.4)
+			{
+				sb.Draw(youWon, new Rectangle((Game1.width - 102)/2, 18, 102, 10), new Rectangle(0, 0, 102, 10), victoryColor);
+			}
 			sb.End();
 		}
 
@@ -199,10 +213,13 @@ namespace RPG
 			if (flasher != null)
 			{
 				if (flashCounter % 2 == 0)
-					flashTimer -= gameTime.ElapsedGameTime.TotalSeconds;
+					flashTimer -= gameTime.ElapsedGameTime.TotalSeconds * timerMult;
 				else
-					flashTimer += gameTime.ElapsedGameTime.TotalSeconds;
-				flash.Parameters["time"].SetValue((float)flashTimer);
+					flashTimer += gameTime.ElapsedGameTime.TotalSeconds * timerMult;
+				if(flasher.health > 0)
+					flash.Parameters["time"].SetValue((float)(flashTimer + 0.1));
+				else
+					flash.Parameters["time"].SetValue((float)(flashTimer/1.1 + 0.01));//the added value controls the offset, multiplication controls transition speed
 
 				if (flashTimer > 0.2)// || flashTimer < 0)
 				{
@@ -234,53 +251,104 @@ namespace RPG
 			commandName.Update(gameTime, prevState);
 			UpdateBackground(gameTime);
 
-			if(turnWaiter > 0.2)
-			if (text.messageComplete())
+			if (curPhase == Phase.EnemyDeathPhase)
 			{
-				if (waiter != null)
+				if (flasher == null)//Executed after flashing finishes
 				{
-					if (waiter.attacked)
+					knight.Kill();
+					if (text.messageComplete() && !deathMessageDisplayed)
 					{
-						if (waiter is Enemy)
+						text = new Hud(new string[] { knight.deathMessage }, content, 30, 2, posY: 3, canClose: true);
+						deathMessageDisplayed = true;
+					}
+				}
+				Console.WriteLine("flash: " + flashCounter);
+
+				if(text.messageComplete())
+					if(flashCounter == 1)
+					{
+						text = new Hud(new string[] { "" }, content, 30, 2, posY: 3, canClose: false);
+						victory = true;
+						turnWaiter = 0;
+					}
+			}
+
+
+			if (turnWaiter > 0.2)
+			{
+				if (text.messageComplete())
+				{
+					if (waiter != null)
+					{
+						if (waiter.attacked)
 						{
-							if (waiter.IsDone(gameTime, combatTimer, prevState))
+							if (waiter is Enemy)
 							{
-								waiter.ForceFinish();
-								waiter = null;
-								turnWaiter = 0;
+								if (waiter.IsDone(gameTime, combatTimer, prevState))
+								{
+									waiter.ForceFinish();
+									waiter = null;
+									turnWaiter = 0;
+								}
+							}
+							else
+							{
+								if (waiter.IsDone(gameTime, waiterTimer, prevState))
+								{
+									waiterTimer = 0;
+									waiter.ForceFinish();
+									waiter = null;
+									turnWaiter = 0;
+								}
 							}
 						}
 						else
 						{
-							if (waiter.IsDone(gameTime, waiterTimer, prevState))
-							{
-								waiterTimer = 0;
-								waiter.ForceFinish();
-								waiter = null;
-								turnWaiter = 0;
-							}
+							waiter.TakeDamage(10, combatTimer);
+							waiter.attacked = true;
 						}
 					}
 					else
-					{
-						waiter.TakeDamage(1, combatTimer);
-						waiter.attacked = true;
-					}
+						advanceBattle();
 				}
-				else
-					advanceBattle();
-			}
-			else
-				text.Update(gameTime, prevState);
+				//else
+					//text.Update(gameTime, prevState);
 
+
+				if (victory && turnWaiter > 0.4)
+				{
+					victoryTimer += gameTime.ElapsedGameTime.TotalSeconds;
+
+					if (victoryTimer < 0.2)
+						victoryColor = new Color(77, 48, 129);//purple
+					else if (victoryTimer < 0.3)
+						victoryColor = new Color(14, 134, 247);//blue
+					else if (victoryTimer < 0.6)
+						victoryColor = new Color(12, 251, 255);//light blue
+					else if (victoryTimer < 0.7)
+						victoryColor = new Color(14, 134, 247);//blue
+					else if (victoryTimer < 0.8)
+						victoryColor = new Color(12, 251, 255);//light blue
+					else if (victoryTimer < 1.9)
+						victoryColor = Color.White;
+					else
+						victoryColor = new Color(216, 254, 177);//yellow
+				}
+			}
+			text.Update(gameTime, prevState);
 
 			prevState = Keyboard.GetState();
 		}
 
 		private void advanceBattle()
 		{
+			//Console.WriteLine("Calling advance!");
 			switch (curPhase)
 			{
+				case Phase.IntroPhase:
+					if(text.messageComplete())
+						curPhase = Phase.PlayerPhase;
+					break;
 				case Phase.PlayerPhase:
 					if (waiter == null)
 						selector.Update(prevState);
@@ -299,10 +367,21 @@ namespace RPG
 					curPhase = Phase.AttackPhase;
 					break;
 				case Phase.AttackPhase:
+					if(knight.health <= 0)
+					{
+						deathMessageDisplayed = false;
+						curPhase = Phase.EnemyDeathPhase;
+						flasher = knight;
+						flashTimer = -0.5;
+						flashCounter = 2;
+						timerMult = 0.5f;
+						//text = new Hud(new string[] { "@The knight dissipates into hollow armor." }, content, 30, 2, posY: 3, canClose: true);
+					}
+					else
 					if(playerMove == 0)
 					{
 						knight.attacked = false;
-						text = new Hud(new string[] { "@Travis's attack!" }, content, 48, 3, canClose: true);
+						text = new Hud(new string[] { "@Travis's attack!" }, content, 30, 2, posY: 3, canClose: true);
 						//knight.TakeDamage(1, combatTimer);
 						waiter = knight;
 						playerMove = -1;
@@ -313,10 +392,11 @@ namespace RPG
 						flashTimer = 0;
 
 						travis.attacked = false;
-						text = new Hud(new string[] { "@Knight's attack!" }, content, 48, 3, canClose: true);
+						text = new Hud(new string[] { "@Knight's attack!" }, content, 30, 2, posY: 3, canClose: true);
 						//travis.TakeDamage(1, combatTimer);
 						waiter = travis;
 						enemyMove = -1;
+						timerMult = 1;
 						//flashCounter = 1;
 						//flashTimer = 0;
 					}
@@ -324,6 +404,10 @@ namespace RPG
 					{
 						curPhase = Phase.PlayerPhase;
 					}
+					break;
+				case Phase.EnemyDeathPhase:
+					//Refer to the if statement in the Update() function
+
 					break;
 				default:
 					break;

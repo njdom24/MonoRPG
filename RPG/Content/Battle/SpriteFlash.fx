@@ -6,7 +6,11 @@ float4 FillColor(float4 pos : SV_POSITION, float4 color1 : COLOR0, float2 texCoo
 {
 	//float3 tint;
 	float4 color = tex2D(s0, texCoord);
-	color.rgb *= time*10;
+	if (color.a)
+		color.rgb += time;
+	color.rgb *= time * 6;
+	
+	
 
 	return color;
 }

@@ -27,6 +27,7 @@
     <File>C:/Users/njdom324/source/repos/MonoRPG/RPG/Content/Battle/Icons/MusicNote.png</File>
     <File>C:/Users/njdom324/source/repos/MonoRPG/RPG/Content/Battle/Icons/Run.png</File>
     <File>C:/Users/njdom324/source/repos/MonoRPG/RPG/Content/Battle/Icons/Spells.png</File>
+    <File>C:/Users/njdom324/source/repos/MonoRPG/RPG/Content/Battle/Icons/YouWon.png</File>
     <File>C:/Users/njdom324/source/repos/MonoRPG/RPG/Content/Battle/image.jpg</File>
     <File>C:/Users/njdom324/source/repos/MonoRPG/RPG/Content/Battle/layer.png</File>
     <File>C:/Users/njdom324/source/repos/MonoRPG/RPG/Content/Battle/ManiMani.gif</File>
@@ -38,6 +39,7 @@
     <File>C:/Users/njdom324/source/repos/MonoRPG/RPG/Content/Corneria_gutter.png</File>
     <File>C:/Users/njdom324/source/repos/MonoRPG/RPG/Content/Debug.png</File>
     <File>C:/Users/njdom324/source/repos/MonoRPG/RPG/Content/File.fx</File>
+    <File>C:/Users/njdom324/source/repos/MonoRPG/RPG/Content/HighlightColor.png</File>
     <File>C:/Users/njdom324/source/repos/MonoRPG/RPG/Content/lightmask.png</File>
     <File>C:/Users/njdom324/source/repos/MonoRPG/RPG/Content/Map/Lucas/Teen.png</File>
     <File>C:/Users/njdom324/source/repos/MonoRPG/RPG/Content/Map/Tazmily/fulltileset.PNG</File>
@@ -51,6 +53,8 @@
     <File>C:/Users/njdom324/source/repos/MonoRPG/RPG/Content/Textbox/Textbox.png</File>
   </SourceFiles>
   <DestFiles>
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
     <File xsi:nil="true" />
     <File xsi:nil="true" />
     <File xsi:nil="true" />

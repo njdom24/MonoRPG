@@ -278,6 +278,18 @@
 /processorParam:TextureFormat=Color
 /build:Battle/Icons/Spells.png
 
+#begin Battle/Icons/YouWon.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:Battle/Icons/YouWon.png
+
 #begin Battle/image.jpg
 /importer:TextureImporter
 /processor:TextureProcessor
@@ -390,6 +402,18 @@
 /processor:EffectProcessor
 /processorParam:DebugMode=Auto
 /build:File.fx
+
+#begin HighlightColor.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:HighlightColor.png
 
 #begin lightmask.png
 /importer:TextureImporter

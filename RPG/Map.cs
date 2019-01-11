@@ -198,12 +198,13 @@ namespace RPG
 			//effect.CurrentTechnique.Passes[1].Apply();
 			if (speaking)
 				hud.Draw(pSb);
-			
 			pSb.End();
 
 			Matrix proj = Matrix.CreateOrthographicOffCenter(0f, 400, 240, 0f, 0f, 1f);
 			Matrix view = camera.GetViewMatrix();
 			//debugView.RenderDebugData(ref proj, ref view);
+
+			
 			
 		}
 

@@ -202,7 +202,7 @@ namespace RPG
 				//spacePressedLastFrame = false;
 				timer += gameTime.ElapsedGameTime.TotalSeconds;
 				cursorTimer += gameTime.ElapsedGameTime.TotalSeconds;
-				if (timer >= 0.015)
+				if (timer >= 0.016)
 				{
 					timer = 0;
 					int len = messages[curMessage].Length;
@@ -320,9 +320,9 @@ namespace RPG
 					}
 				}
 				//Draws cusor bobbing up and down
-				if(wait || isFinished())
+				if(canClose && (wait || isFinished()))
 				{
-					sb.Draw(textbox, new Rectangle(offsetX + width*8, cursorBob + offsetY + height*8, 7, 4), new Rectangle(16, 96, 7, 4), textColor);
+					sb.Draw(textbox, new Rectangle(offsetX + width*8, cursorBob + offsetY + height*8 + 1, 7, 4), new Rectangle(16, 96, 7, 4), textColor);
 					//Console.WriteLine("Cursor bob: " + cursorBob);
 				}
             }

@@ -151,3 +151,5 @@ C:\Users\njdom324\source\repos\MonoRPG\RPG\bin\x64\Debug\Content\Textbox\Text.xn
 C:\Users\njdom324\source\repos\MonoRPG\RPG\bin\x64\Debug\Content\Battle\Player.xnb
 C:\Users\njdom324\source\repos\MonoRPG\RPG\bin\x64\Debug\Content\Battle\SpriteFlash.xnb
 C:\Users\njdom324\source\repos\MonoRPG\RPG\bin\x64\Debug\Content\Battle\Numbers\ScrollingNums.xnb
+C:\Users\njdom324\source\repos\MonoRPG\RPG\bin\x64\Debug\Content\Battle\Icons\YouWon.xnb
+C:\Users\njdom324\source\repos\MonoRPG\RPG\bin\x64\Debug\Content\HighlightColor.xnb
