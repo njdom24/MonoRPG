@@ -67,10 +67,10 @@
     <Compile Include="Battle.cs" />
     <Compile Include="Battler.cs" />
     <Compile Include="Combatant.cs" />
-    <Compile Include="Cursor.cs" />
     <Compile Include="DebugViewXNA.cs" />
     <Compile Include="Enemy.cs" />
     <Compile Include="Game1.cs" />
+    <Compile Include="Menu.cs" />
     <Compile Include="OldHud.cs" />
     <Compile Include="Hud.cs" />
     <Compile Include="Icon.cs" />

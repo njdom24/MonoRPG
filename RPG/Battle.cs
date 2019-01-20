@@ -216,9 +216,9 @@ namespace RPG
 					flashTimer -= gameTime.ElapsedGameTime.TotalSeconds * timerMult;
 				else
 					flashTimer += gameTime.ElapsedGameTime.TotalSeconds * timerMult;
-				if(flasher.health > 0)
+				if(flasher.health > 0)//Attack Flash
 					flash.Parameters["time"].SetValue((float)(flashTimer + 0.1));
-				else
+				else//Dying flash
 					flash.Parameters["time"].SetValue((float)(flashTimer/1.1 + 0.01));//the added value controls the offset, multiplication controls transition speed
 
 				if (flashTimer > 0.2)// || flashTimer < 0)

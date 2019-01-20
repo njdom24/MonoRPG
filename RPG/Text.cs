@@ -12,7 +12,7 @@ namespace RPG
 	class Text
 	{
 		private Texture2D text;
-		private Texture2D background;
+		//private Texture2D background;
 		private Color color;
 
 		private int[] lengthRef;
@@ -20,17 +20,21 @@ namespace RPG
 		private Point[] locations;
 
 		public int width;
-		public bool highlighted;
+		//private bool highlighted;
 		private int highlightWidth;
 
-		public Text(ContentManager contentManager, string message, int customWidth = -1)
+		public Text(ContentManager contentManager, string message, int customWidth = -1) : this(contentManager.Load<Texture2D>("Textbox/Text"), message, customWidth)
+		{
+			
+		}
+		public Text(Texture2D font, string message, int customWidth = -1)
 		{
 			lengthRef = new int[] { 2, 2, 3, 2, 5, 9, 7, 2, 3, 3, 3, 5, 2, 2, 2, 4, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 2, 3, 3, 5, 3, 4, 5, 6, 5, 5, 5, 4, 4, 5, 5, 1, 4, 5, 4, 7, 5, 5, 5, 5, 5, 5, 5, 5, 6, 7, 5, 5, 4, 5, 4, 6, 4, 5, 1, 4, 4, 4, 4, 4, 3, 4, 4, 1, 2, 4, 1, 7, 4, 4, 4, 4, 3, 4, 3, 4, 5, 7, 4, 4, 4, 2, 5, 2, 6, 7, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255 };
 			letterPos = new int[message.Length];
 			locations = new Point[message.Length];
 
-			text = contentManager.Load<Texture2D>("Textbox/Text");
-			background = contentManager.Load<Texture2D>("HighlightColor");
+			text = font;// contentManager.Load<Texture2D>("Textbox/Text");
+			//background = contentManager.Load<Texture2D>("HighlightColor");
 
 			for (int i = 0; i < message.Length; i++)
 			{
@@ -48,6 +52,9 @@ namespace RPG
 				}
 			}
 
+			color = Color.White;
+
+			//Custom highlight width
 			if (customWidth == -1)
 				highlightWidth = width + 1;
 			else
@@ -56,9 +63,6 @@ namespace RPG
 
 		public void Draw(SpriteBatch sb, Vector2 pos)
 		{
-			if(highlighted)
-				sb.Draw(background, new Rectangle((int)pos.X - 1, (int)pos.Y + 2, highlightWidth, 13), new Rectangle(0, 0, 1, 1), Color.White);
-
 			for (int i = 0; i < locations.Length; i++)
 			{
 				sb.Draw(text, new Rectangle((int)(letterPos[i] + pos.X), (int)pos.Y, 16, 16), new Rectangle(locations[i].X, locations[i].Y, 16, 16), color);

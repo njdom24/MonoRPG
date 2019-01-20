@@ -228,7 +228,7 @@ namespace RPG
 
 				if(cursorTimer > 0.25)
 				{
-					cursorTimer = 0;
+					cursorTimer -= 0.25;
 
 					if (wait || isFinished())
 					{

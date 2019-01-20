@@ -42,6 +42,8 @@ namespace RPG
 		private List<Body> blocks;
 		private List<Vector2> blockDims;//x, y, width, height
 
+		private Menu menu;
+
 		private TiledMap tMap;
 		private TiledMapRenderer mapRenderer;
 
@@ -79,6 +81,8 @@ namespace RPG
 			height = pHeight;
 			g = pDevice;
 			cont = content;
+
+			menu = new Menu(content);
 
 			camera = new Camera2D(pDevice);
 			debug = content.Load<Texture2D>("overworld_gutter");
@@ -198,6 +202,8 @@ namespace RPG
 			//effect.CurrentTechnique.Passes[1].Apply();
 			if (speaking)
 				hud.Draw(pSb);
+
+			menu.Draw(pSb);
 			pSb.End();
 
 			Matrix proj = Matrix.CreateOrthographicOffCenter(0f, 400, 240, 0f, 0f, 1f);
@@ -219,6 +225,7 @@ namespace RPG
 
 			mapRenderer.Update(tMap, gameTime);
 
+			menu.Update(gameTime, prevState);
 
 			if (!speaking)
 			{

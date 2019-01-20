@@ -25,8 +25,8 @@ namespace RPG
 			}
 			else
 			{
-				increment = Keys.Up;
-				decrement = Keys.Down;
+				increment = Keys.Down;
+				decrement = Keys.Up;
 			}
 			current = 0;
 
@@ -41,7 +41,7 @@ namespace RPG
 			this.names = names;
 		}
 
-		public void Update(KeyboardState prevState)
+		public bool Update(KeyboardState prevState)
 		{
 			lastFrameIndex = current;
 
@@ -49,17 +49,25 @@ namespace RPG
 			{
 				if (current-- == 0)
 					current = length-1;
+				return true;
 			}
 			else if (Keyboard.GetState().IsKeyDown(increment) && prevState.IsKeyUp(increment))
 			{
 				if (++current == length)
 					current = 0;
+				return true;
 			}
+			return false;
 		}
 
 		public int GetIndex()
 		{
 			return current;
+		}
+
+		public void SetIndex(int index)
+		{
+			current = index;
 		}
 
 		public bool IndexChanged()

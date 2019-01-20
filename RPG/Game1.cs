@@ -46,13 +46,11 @@ namespace RPG
 			Window.Title = "FF";
 
 			int scale = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width / 600;//400 for full, 800 for half
-			//scale = 1;
+			scale = 1;
 			//Window.Position = new Point(GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width / 2 - 200 * scale, GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height / 2 - 120 * scale);
-			Window.Position = new Point(299, 300);
-			manager.PreferredBackBufferWidth = 1920/1;//400 * scale;
-			manager.PreferredBackBufferHeight = 1080/1;//240 * scale;
-			manager.PreferredBackBufferWidth = 400;//400 * scale;
-			manager.PreferredBackBufferHeight = 240;//240 * scale;
+			Window.Position = new Point(0, 0);
+			manager.PreferredBackBufferWidth = 400/1;//400 * scale;
+			manager.PreferredBackBufferHeight = 240/1;//240 * scale;
 			largestScale.X = 400 * scale;
 			largestScale.Y = 240 * scale;
 
@@ -72,10 +70,9 @@ namespace RPG
 			original = new RenderTarget2D(GraphicsDevice, 400, 240, false, SurfaceFormat.Color, DepthFormat.None, pp.MultiSampleCount, RenderTargetUsage.DiscardContents);
 			nearest = new RenderTarget2D(GraphicsDevice, largestScale.X, largestScale.Y, false, SurfaceFormat.Color, DepthFormat.None, pp.MultiSampleCount, RenderTargetUsage.DiscardContents);
 			bilinear = new RenderTarget2D(GraphicsDevice, 1920, 1080, false, SurfaceFormat.Color, DepthFormat.None, pp.MultiSampleCount, RenderTargetUsage.DiscardContents);
-			nearest = bilinear = original;
 			//currentScreen = new OldMap(GraphicsDevice, Content, 16, 16, 10, 10);
-			currentScreen = new Battle(Content, original, GraphicsDevice, pp);
-			//currentScreen = new Map(GraphicsDevice, Content, 48, 48, 10, 10);
+			//currentScreen = new Battle(Content, original, GraphicsDevice, pp);
+			currentScreen = new Map(GraphicsDevice, Content, 48, 48, 10, 10);
 			sb = new SpriteBatch(GraphicsDevice);
 			render = new SpriteBatch(GraphicsDevice);
 			//currentScreen = new TestScreen(Content);
@@ -146,7 +143,7 @@ namespace RPG
 		/// <param name="gameTime">Provides a snapshot of timing values.</param>
 		protected override void Draw(GameTime gameTime)
 		{
-			GraphicsDevice.SetRenderTarget(original);
+			GraphicsDevice.SetRenderTarget(null);
 			//GraphicsDevice.Clear(Color.CornflowerBlue);
 			GraphicsDevice.SamplerStates[0] = SamplerState.PointWrap;
 
@@ -164,7 +161,7 @@ namespace RPG
 
 			//sb.End();
 
-			myScale();
+			//myScale();
 			//scaleToDisplay();
 
 			// TODO: Add your drawing code here
