@@ -84,11 +84,11 @@ namespace RPG
 			}
 
             if (posX == -1)
-                offsetX = (400 - (width + 2) * 8) / 2;
+                offsetX = (Game1.width - (width + 2) * 8) / 2;
             else
                 offsetX = posX;
 			if (posY == -1)
-				offsetY = 240 - (height + 2) * 8 - 4;
+				offsetY = Game1.height - (height + 2) * 8 - 4;
 			else
 				offsetY = posY;
 

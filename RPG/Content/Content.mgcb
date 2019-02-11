@@ -140,6 +140,18 @@
 /processorParam:TextureFormat=Color
 /build:Battle/ByteTexturePalette.png
 
+#begin Battle/Effects/PkFireA.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:Battle/Effects/PkFireA.png
+
 #begin Battle/Enemies/Knight.png
 /importer:TextureImporter
 /processor:TextureProcessor
@@ -369,8 +381,8 @@
 /build:Battle/Yellow.PNG
 
 #begin corneria.tmx
-/importer:
-/processor:
+/importer:TiledMapImporter
+/processor:TiledMapProcessor
 /build:corneria.tmx
 
 #begin Corneria_gutter.png
@@ -464,8 +476,8 @@
 /build:Map/Tazmily/Hinawa/Hinawa.png
 
 #begin Map/Tazmily/Tazmily.tmx
-/importer:
-/processor:
+/importer:TiledMapImporter
+/processor:TiledMapProcessor
 /build:Map/Tazmily/Tazmily.tmx
 
 #begin OpenedDoor.png

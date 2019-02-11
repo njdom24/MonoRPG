@@ -75,7 +75,7 @@ namespace RPG
 			visible = true;
 			noteTimer = 0;
 			notePos = Vector2.Zero;
-			defaultPos = new Vector2((400 - sprite.Width) / 2, (240 - offsetBottom + offsetTop - sprite.Height) / 2);
+			defaultPos = new Vector2((Game1.width - sprite.Width) / 2, (Game1.height - offsetBottom + offsetTop - sprite.Height) / 2);
 			noteHit = true;
 			noteCount = 0;
 			this.secondsPerBeat = secondsPerBeat;
@@ -84,8 +84,8 @@ namespace RPG
 			lastForce = 450;
 			this.offsetTop = offsetTop;
 			this.offsetBottom = offsetBottom;
-			body = new Body(world, new Vector2((400 - sprite.Width) / 2, (240 - offsetBottom + offsetTop - sprite.Height) / 2));
-			body.SetTransform(new Vector2((400 - sprite.Width) / 2, (240 - offsetBottom + offsetTop - sprite.Height) / 2), 0);
+			body = new Body(world, new Vector2((Game1.width - sprite.Width) / 2, (Game1.height - offsetBottom + offsetTop - sprite.Height) / 2));
+			body.SetTransform(new Vector2((Game1.width - sprite.Width) / 2, (Game1.height - offsetBottom + offsetTop - sprite.Height) / 2), 0);
 			body.BodyType = BodyType.Dynamic;
 			body.IgnoreGravity = true;
 			body.Mass = 0.1f;

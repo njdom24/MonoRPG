@@ -115,8 +115,8 @@ float4 Layer2(float4 pos : SV_POSITION, float4 color1 : COLOR0, float2 texCoord 
 float4 Layer3(float4 pos : SV_POSITION, float4 color1 : COLOR0, float2 texCoord : TEXCOORD0) : SV_TARGET0
 {
 	//Makes smaller images maintain their size and wrap if necessary
-	texCoord.x = texCoord.x * (400.0 / 256.0) - 0.3;
-	texCoord.y = texCoord.y * (240.0 / 256.0) - 0.095;
+	texCoord.x = texCoord.x * (320.0 / 256.0) - 0.3;
+	texCoord.y = texCoord.y * (180.0 / 256.0) - 0.095;
 	//Distortions
 	texCoord.y = texCoord.y + time * 0.2;
 	texCoord.y = texCoord.y + 0.1*sin(texCoord.y*4 + time * 1);
@@ -131,8 +131,8 @@ float4 Layer5(float4 pos : SV_POSITION, float4 color1 : COLOR0, float2 texCoord 
 {
 	texCoord.y = texCoord.y + time * 0.1;
 	
-	texCoord.x = texCoord.x * (400.0/256.0);
-	texCoord.y = texCoord.y * (240.0/256.0);
+	texCoord.x = texCoord.x * (320.0/256.0);
+	texCoord.y = texCoord.y * (180.0/256.0);
 	float2 texCoordLeft = texCoord;
 	//texCoord.x = texCoord.x + time * 1;
 	//float4 color = tex2D(s0, texCoord);

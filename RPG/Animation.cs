@@ -9,7 +9,7 @@ namespace RPG
 	class Animation//Assumes the standing animation is the second frame of the walking animation
 	{
 		private int start;
-		private int end;
+		public int frameCount;
 		public int offset;
 
 		private int curFrame;
@@ -17,7 +17,7 @@ namespace RPG
 		public Animation(int start, int end, int offset = 0)
 		{
 			this.start = start;
-			this.end = end;
+			this.frameCount = end;
 			curFrame = end;
 			this.offset = offset;
 		}
@@ -25,7 +25,7 @@ namespace RPG
 		public void advanceFrame()
 		{
 			curFrame++;
-			if (curFrame > end)
+			if (curFrame > frameCount)
 				curFrame = start;
 		}
 
@@ -41,7 +41,7 @@ namespace RPG
 
 		public void resetEnd()
 		{
-			curFrame = end;
+			curFrame = frameCount;
 		}
 	}
 }

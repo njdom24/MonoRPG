@@ -113,7 +113,8 @@ namespace RPG
 			MakeCollisionBodies();
 
 			npcs = new NPC[] {
-				new NPC(world, content, player, 1, false, 12, 15, prevState, new string[] { "@You wanna see the special?\n@It's a detective story. Some kind of <Columbo>\n  knock-off.\n@Well, ya interested or not?", "@Get outta here." }),
+				//new NPC(world, content, player, 1, false, 12, 15, prevState, new string[] { "@You wanna see the special?\n@It's a detective story. Some kind of <Columbo>\n  knock-off.\n@Well, ya interested or not?", "@Get outta here." }),
+				new NPC(world, content, player, 1, false, 12, 15, prevState, new string[] { "@Your name Steve Foley? Of course it is.\n  You are great. Fantastic.\n@Good job Steve.", "@Get outta here." }),
 				//new NewNPC(world, content, player, 0, true, 18, 18, new string[] {"help"}, 4, 1)
 			};
 			entityList.Add(player);
@@ -203,15 +204,12 @@ namespace RPG
 			if (speaking)
 				hud.Draw(pSb);
 
-			menu.Draw(pSb);
+			//menu.Draw(pSb);
 			pSb.End();
 
-			Matrix proj = Matrix.CreateOrthographicOffCenter(0f, 400, 240, 0f, 0f, 1f);
+			Matrix proj = Matrix.CreateOrthographicOffCenter(0f, Game1.width, Game1.height, 0f, 0f, 1f);
 			Matrix view = camera.GetViewMatrix();
 			//debugView.RenderDebugData(ref proj, ref view);
-
-			
-			
 		}
 
 		void Screen.Update(GameTime gameTime)
@@ -290,38 +288,38 @@ namespace RPG
 
 		private void AdjustCamera()
 		{
-			Vector2 tempPos = new Vector2((int)(ConvertUnits.ToDisplayUnits(player.body.Position.X) - 200), (int)(ConvertUnits.ToDisplayUnits(player.body.Position.Y) - 120 + 16 - 13));
+			Vector2 tempPos = new Vector2((int)(ConvertUnits.ToDisplayUnits(player.body.Position.X) - Game1.width/2), (int)(ConvertUnits.ToDisplayUnits(player.body.Position.Y) - Game1.height/2 + 6 - 13));
 
 			if (TooFarUp())
 				tempPos.Y = 0;
 			else if (TooFarDown())
-				tempPos.Y = tMap.HeightInPixels - 240;
+				tempPos.Y = tMap.HeightInPixels - Game1.height;
 			if (TooFarLeft())
 				tempPos.X = 0;
 			else if (TooFarRight())
-				tempPos.X = tMap.WidthInPixels - 400;
+				tempPos.X = tMap.WidthInPixels - Game1.width;
 
 			//camera.Position = Vector2.Lerp(camera.Position, tempPos, 0.1f);
 			camera.Position = tempPos;
 		}
 		private bool TooFarLeft()
 		{
-			return (ConvertUnits.ToDisplayUnits(player.body.Position.X) - 400 / 2 < 0);
+			return (ConvertUnits.ToDisplayUnits(player.body.Position.X) - Game1.width / 2 < 0);
 		}
 
 		private bool TooFarRight()
 		{
-			return (ConvertUnits.ToDisplayUnits(player.body.Position.X) - 400 / 2 + 400 > tMap.WidthInPixels);
+			return (ConvertUnits.ToDisplayUnits(player.body.Position.X) - Game1.width / 2 + Game1.width > tMap.WidthInPixels);
 		}
 
 		private bool TooFarUp()
 		{
-			return (ConvertUnits.ToDisplayUnits(player.body.Position.Y) - 240 / 2 + 16 - 13 < 0);
+			return (ConvertUnits.ToDisplayUnits(player.body.Position.Y) - Game1.height / 2 + 6 - 13 < 0);
 		}
 
 		private bool TooFarDown()
 		{
-			return (ConvertUnits.ToDisplayUnits(player.body.Position.Y) - 240 / 2 + 16 - 13 + 240 > tMap.HeightInPixels);
+			return (ConvertUnits.ToDisplayUnits(player.body.Position.Y) - Game1.height / 2 + 6 - 13 + Game1.height > tMap.HeightInPixels);
 		}
 
 		private void parsePolys(string group, bool isSensor)

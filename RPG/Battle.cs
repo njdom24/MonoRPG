@@ -62,9 +62,14 @@ namespace RPG
 		private int playerMove;
 		private int enemyMove;
 
-		private enum Phase {IntroPhase, PlayerPhase, SelectTarget, EnemyPhase, AttackPhase, PlayerDeathPhase, EnemyDeathPhase, YouWin};
+		private enum Phase {IntroPhase, PlayerPhase, SelectTarget, EnemyPhase, AttackPhase, AnimPhase, PlayerDeathPhase, EnemyDeathPhase, YouWin};
 		private Phase curPhase;
 		private double turnWaiter;
+
+		private Animation magicAnim;
+		private Texture2D magic;
+		private double animTimer;
+		private double darkenTimer;
 
 		private bool deathMessageDisplayed;
 
@@ -80,7 +85,7 @@ namespace RPG
 			youWon = contentManager.Load<Texture2D>("Battle/Icons/YouWon");
 			victoryColor = Color.White;
 			secondsPerBeat = 0.5f;
-			world = new World(ConvertUnits.ToSimUnits(0,400));
+			world = new World(ConvertUnits.ToSimUnits(0,Game1.width));
 			waiter = null;
 			options = new Icons(contentManager);
 			blackRect = new Texture2D(graphicsDevice, 1, 1);
@@ -93,15 +98,16 @@ namespace RPG
 			effect.Parameters["paletteWidth"].SetValue((float)palette.Width);
 			effect.Parameters["time"].SetValue((float)bgTimer);
 			flash.Parameters["time"].SetValue((float)flashTimer);
-			firstEffect = new RenderTarget2D(graphicsDevice, 400, 240, false, SurfaceFormat.Color, DepthFormat.None, MultiSampleCount, RenderTargetUsage.DiscardContents);
-			secondEffect = new RenderTarget2D(graphicsDevice, 400, 240, false, SurfaceFormat.Color, DepthFormat.None, MultiSampleCount, RenderTargetUsage.DiscardContents);
-			comboEffect = new RenderTarget2D(graphicsDevice, 400, 240, false, SurfaceFormat.Color, DepthFormat.None, MultiSampleCount, RenderTargetUsage.DiscardContents);
+			firstEffect = new RenderTarget2D(graphicsDevice, Game1.width, Game1.height, false, SurfaceFormat.Color, DepthFormat.None, MultiSampleCount, RenderTargetUsage.DiscardContents);
+			secondEffect = new RenderTarget2D(graphicsDevice, Game1.width, Game1.height, false, SurfaceFormat.Color, DepthFormat.None, MultiSampleCount, RenderTargetUsage.DiscardContents);
+			comboEffect = new RenderTarget2D(graphicsDevice, Game1.width, Game1.height, false, SurfaceFormat.Color, DepthFormat.None, MultiSampleCount, RenderTargetUsage.DiscardContents);
 			content = contentManager;
 			prevState = Keyboard.GetState();
 			selector = new Selector(4, names: new string[] {"Attack", "Bag", "PSI", "Run"});
 			background = contentManager.Load<Texture2D>("Battle/005");
-			
 			background2 = content.Load<Texture2D>("Battle/Yellow");
+			magic = contentManager.Load<Texture2D>("Battle/Effects/PkFireA");
+			magicAnim = new Animation(0, 24);
 			
 			bgTimer = 0;
 			//graphicsDevice.Textures[2] = palette;
@@ -109,11 +115,13 @@ namespace RPG
 			this.graphicsDevice = graphicsDevice;
 			text = new Hud(new string[] { "@Knight draws near!" }, content, 30, 2, posY: 3, canClose: true);
 			//text.finishText();
-			commandName = new Hud(new string[] { selector.GetName() }, content, 6, 1, 400 - (8 * 9), 4, canClose: false);
+			commandName = new Hud(new string[] { selector.GetName() }, content, 6, 1, Game1.width - (8 * 9), 4, canClose: false);
 			offsetHeightBottom = text.getHeight();
 			offsetHeightTop = 32;
 			flashCounter = 1;
 			timerMult = 1;
+
+			darkenTimer = 1;
 		}
 
 		public void DrawBackground(SpriteBatch sb)
@@ -122,7 +130,7 @@ namespace RPG
 			sb.Begin(sortMode: SpriteSortMode.Immediate);
 			effect.CurrentTechnique.Passes[0].Apply();
 			graphicsDevice.SamplerStates[0] = SamplerState.PointWrap;
-			sb.Draw(background, new Rectangle(0, 0, 400, 240), Color.White);//Draw to texture
+			sb.Draw(background, new Rectangle(0, 0, Game1.width, Game1.height), Color.White);//Draw to texture
 			sb.End();
 
 			//////////////////////////////////Second Background///////////////////////////////////
@@ -135,11 +143,12 @@ namespace RPG
 			sb.End();
 			*/
 			graphicsDevice.SetRenderTarget(final);
-			sb.Begin(samplerState: SamplerState.PointClamp);
-			
-			sb.Draw(firstEffect, new Rectangle(0, 0, 400, 240), Color.White * 1f);
+			sb.Begin(samplerState: SamplerState.PointClamp, sortMode: SpriteSortMode.Immediate);
+			//Console.WriteLine("Count: " + flash.Techniques.Count);
+
+			sb.Draw(firstEffect, new Rectangle(0, 0, Game1.width, Game1.height), Color.White * (float)darkenTimer);
 			//sb.Draw(secondEffect, new Rectangle(0, 0, 400, 240), Color.White * 0f);
-			
+
 			sb.End();
 		}
 
@@ -147,7 +156,7 @@ namespace RPG
 		{
 			sb.Begin(samplerState: SamplerState.PointClamp);
 			sb.Draw(blackRect, new Rectangle(0, Game1.height - 35, Game1.width, 35), Color.Black);
-			sb.Draw(blackRect, new Rectangle(0, 0, 400, 32), Color.Black);
+			sb.Draw(blackRect, new Rectangle(0, 0, Game1.width, 32), Color.Black);
 			if (curPhase == Phase.PlayerPhase)
 			{
 				
@@ -174,7 +183,7 @@ namespace RPG
 			sb.End();
 
 			if (selector.IndexChanged())
-				commandName = new Hud(new string[] { selector.GetName() }, content, 6, 1, 400-(8*9), 4, canClose: false);
+				commandName = new Hud(new string[] { selector.GetName() }, content, 6, 1, Game1.width-(8*9), 4, canClose: false);
 		}
 
 		public void Draw(SpriteBatch sb)
@@ -204,6 +213,12 @@ namespace RPG
 			if(victory && turnWaiter > 0.4)
 			{
 				sb.Draw(youWon, new Rectangle((Game1.width - 102)/2, 18, 102, 10), new Rectangle(0, 0, 102, 10), victoryColor);
+			}
+
+			if(curPhase == Phase.AnimPhase && !text.visible)
+			{
+				int frame = magicAnim.getFrame();
+				sb.Draw(magic, new Rectangle(0, 0, Game1.width, Game1.height), new Rectangle((frame % 4) * Game1.width, (frame / 4)*Game1.height, Game1.width, Game1.height), Color.White);
 			}
 			sb.End();
 		}
@@ -247,6 +262,7 @@ namespace RPG
 			combatTimer += gameTime.ElapsedGameTime.TotalSeconds;
 			waiterTimer += gameTime.ElapsedGameTime.TotalSeconds;
 			turnWaiter += gameTime.ElapsedGameTime.TotalSeconds;
+
 			commandName.finishMessage();
 			commandName.Update(gameTime, prevState);
 			UpdateBackground(gameTime);
@@ -309,7 +325,7 @@ namespace RPG
 						}
 					}
 					else
-						advanceBattle();
+						advanceBattle(gameTime);
 				}
 				//else
 					//text.Update(gameTime, prevState);
@@ -340,7 +356,7 @@ namespace RPG
 			prevState = Keyboard.GetState();
 		}
 
-		private void advanceBattle()
+		private void advanceBattle(GameTime gameTime)
 		{
 			//Console.WriteLine("Calling advance!");
 			switch (curPhase)
@@ -358,6 +374,12 @@ namespace RPG
 						if (selector.GetIndex() == 0)
 						{
 							playerMove = 0;
+							curPhase = Phase.EnemyPhase;
+						}
+						else if (selector.GetIndex() == 1)
+						{
+							playerMove = 1;
+							magic = content.Load<Texture2D>("Battle/Effects/PkFireA");
 							curPhase = Phase.EnemyPhase;
 						}
 					}
@@ -378,12 +400,28 @@ namespace RPG
 						//text = new Hud(new string[] { "@The knight dissipates into hollow armor." }, content, 30, 2, posY: 3, canClose: true);
 					}
 					else
-					if(playerMove == 0)
+					if(playerMove != -1)
 					{
-						knight.attacked = false;
-						text = new Hud(new string[] { "@Travis's attack!" }, content, 30, 2, posY: 3, canClose: true);
-						//knight.TakeDamage(1, combatTimer);
-						waiter = knight;
+						if (playerMove == 0)
+						{
+							knight.attacked = false;
+							text = new Hud(new string[] { "@Travis's attack!" }, content, 30, 2, posY: 3, canClose: true);
+							//knight.TakeDamage(1, combatTimer);
+							waiter = knight;
+							//playerMove = -1;
+						}
+						else if(playerMove == 1)
+						{
+							text = new Hud(new string[] { "@Travis tried PK Fire [!" }, content, 30, 2, posY: 3, canClose: true);
+							Console.WriteLine("GetFrame: " + magicAnim.getFrame());
+							magicAnim.resetStart();
+							darkenTimer = 1;
+							curPhase = Phase.AnimPhase;
+							//if (magicAnim.getFrame() == 25)
+								//playerMove = -1;
+							//playerMove = -1;
+							//TODO: Something
+						}
 						playerMove = -1;
 					}
 					else if(enemyMove == 0)
@@ -408,6 +446,36 @@ namespace RPG
 				case Phase.EnemyDeathPhase:
 					//Refer to the if statement in the Update() function
 
+					break;
+				case Phase.AnimPhase:
+					Console.WriteLine("anim");
+					
+					
+
+					if (magicAnim.getFrame() == magicAnim.frameCount)
+					{
+						Console.WriteLine("Skadoosh");
+						if (darkenTimer < 1)
+							darkenTimer += gameTime.ElapsedGameTime.TotalSeconds * 4;
+						else
+						{
+							curPhase = Phase.AttackPhase;
+							magicAnim.resetStart();
+						}
+					}
+					else
+					{
+						if (darkenTimer > 0.5)
+							darkenTimer -= gameTime.ElapsedGameTime.TotalSeconds * 5;
+
+						animTimer += gameTime.ElapsedGameTime.TotalSeconds;
+
+						if (animTimer > 0.05)
+						{
+							animTimer -= 0.05;
+							magicAnim.advanceFrame();
+						}
+					}
 					break;
 				default:
 					break;

@@ -62,7 +62,7 @@ namespace RPG
 			speedMult = 1;
 			runOffset = 0;
 			running = false;
-			animSpeed = 0.25f;
+			animSpeed = 0.3f;
 			flipped = false;
 			//body = new Body(world, new Vector2(0, 0));
 			bodyWidth = ConvertUnits.ToSimUnits((float)width);//15
@@ -151,7 +151,7 @@ namespace RPG
 					else if (!running)
 					{
 						runOffset = 0;
-						animSpeed = 0.25f;
+						animSpeed = 0.3f;
 						speedMult = 1;
 					}
 					runTimer = 0;
@@ -163,7 +163,7 @@ namespace RPG
 							Console.WriteLine("Weird stopping mechanism");
 							running = false;
 							runOffset = 0;
-							animSpeed = 0.25f;
+							animSpeed = 0.3f;
 							speedMult = 1;
 						}
 						startedRunning = false;
@@ -290,6 +290,11 @@ namespace RPG
 				animIndex = animation.getFrame();
 			}
 			else if (!hPass)
+			{
+				SetStandingAnim();
+			}
+
+			if (curStateH != prevStateH || curStateV != prevStateV)
 			{
 				SetStandingAnim();
 			}

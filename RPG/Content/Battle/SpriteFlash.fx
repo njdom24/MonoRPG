@@ -10,8 +10,6 @@ float4 FillColor(float4 pos : SV_POSITION, float4 color1 : COLOR0, float2 texCoo
 		color.rgb += time;
 	color.rgb *= time * 6;
 	
-	
-
 	return color;
 }
 

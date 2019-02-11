@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PipelineBuildEvent xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-  <SourceFile>C:/Users/njdom324/source/repos/MonoRPG/RPG/Content/Battle/Numbers/ScrollingNums.png</SourceFile>
-  <SourceTime>2019-01-08T23:01:46.4224274-05:00</SourceTime>
-  <DestFile>C:/Users/njdom324/source/repos/MonoRPG/RPG/Content/bin/Windows/Battle/Numbers/ScrollingNums.xnb</DestFile>
-  <DestTime>2019-01-10T19:49:17.2773605-05:00</DestTime>
+  <SourceFile>C:/Users/Dom32/source/repos/RPG/RPG/Content/Battle/Numbers/ScrollingNums.png</SourceFile>
+  <SourceTime>2019-01-21T11:07:31.5187189-05:00</SourceTime>
+  <DestFile>C:/Users/Dom32/source/repos/RPG/RPG/Content/bin/Windows/Battle/Numbers/ScrollingNums.xnb</DestFile>
+  <DestTime>2019-02-11T11:22:29.9005414-05:00</DestTime>
   <Importer>TextureImporter</Importer>
-  <ImporterTime>2018-09-23T17:55:52-04:00</ImporterTime>
+  <ImporterTime>2018-12-08T11:35:54-05:00</ImporterTime>
   <Processor>TextureProcessor</Processor>
-  <ProcessorTime>2018-09-23T17:55:52-04:00</ProcessorTime>
+  <ProcessorTime>2018-12-08T11:35:54-05:00</ProcessorTime>
   <Parameters>
     <Key>ColorKeyColor</Key>
     <Value>255,0,255,255</Value>

@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PipelineBuildEvent xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-  <SourceFile>C:/Users/njdom324/source/repos/MonoRPG/RPG/Content/Battle/ByteTexturePalette.png</SourceFile>
-  <SourceTime>2018-12-26T00:05:06.8246462-05:00</SourceTime>
-  <DestFile>C:/Users/njdom324/source/repos/MonoRPG/RPG/Content/bin/Windows/Content/Battle/ByteTexturePalette.xnb</DestFile>
-  <DestTime>2018-12-26T00:05:14.0021836-05:00</DestTime>
+  <SourceFile>C:/Users/Dom32/source/repos/RPG/RPG/Content/Battle/ByteTexturePalette.png</SourceFile>
+  <SourceTime>2019-01-21T11:07:31.5138535-05:00</SourceTime>
+  <DestFile>C:/Users/Dom32/source/repos/RPG/RPG/Content/bin/Windows/Content/Battle/ByteTexturePalette.xnb</DestFile>
+  <DestTime>2019-02-07T16:14:10.9909743-05:00</DestTime>
   <Importer>TextureImporter</Importer>
-  <ImporterTime>2018-09-23T17:55:52-04:00</ImporterTime>
+  <ImporterTime>2018-12-08T11:35:54-05:00</ImporterTime>
   <Processor>TextureProcessor</Processor>
-  <ProcessorTime>2018-09-23T17:55:52-04:00</ProcessorTime>
+  <ProcessorTime>2018-12-08T11:35:54-05:00</ProcessorTime>
   <Parameters>
     <Key>ColorKeyColor</Key>
     <Value>255,0,255,255</Value>

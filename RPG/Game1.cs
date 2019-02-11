@@ -29,8 +29,8 @@ namespace RPG
 		private RenderTarget2D nearest;
 		private RenderTarget2D bilinear;
 		private Point largestScale;
-		public static int width = 400;
-		public static int height = 240;
+		public static int width = 320;//400;
+		public static int height = 180;//240;
 
 		//private Texture2D light;
 
@@ -45,14 +45,19 @@ namespace RPG
 			Window.IsBorderless = true;
 			Window.Title = "FF";
 
-			int scale = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width / 600;//400 for full, 800 for half
-			scale = 1;
+			int scale = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width / width;//400 for full, 800 for half
+			//scale = 1;
 			//Window.Position = new Point(GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width / 2 - 200 * scale, GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height / 2 - 120 * scale);
+
 			Window.Position = new Point(0, 0);
-			manager.PreferredBackBufferWidth = 400/1;//400 * scale;
-			manager.PreferredBackBufferHeight = 240/1;//240 * scale;
-			largestScale.X = 400 * scale;
-			largestScale.Y = 240 * scale;
+			manager.PreferredBackBufferWidth = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width / 1;//400 * scale;
+			manager.PreferredBackBufferHeight = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height / 1;//240 * scale;
+			//manager.PreferredBackBufferWidth = 400;//400 * scale;
+			//manager.PreferredBackBufferHeight = 240;//240 * scale;
+			largestScale.X = width * scale;
+			largestScale.Y = height * scale;
+
+			Console.WriteLine("Scale: " + scale);
 
 			Content.RootDirectory = "Content";
 		}
@@ -67,12 +72,13 @@ namespace RPG
 			//GraphicsDevice.GraphicsProfile = GraphicsProfile.HiDef;
 			GraphicsDevice.DepthStencilState = DepthStencilState.Default;
 			PresentationParameters pp = GraphicsDevice.PresentationParameters;
-			original = new RenderTarget2D(GraphicsDevice, 400, 240, false, SurfaceFormat.Color, DepthFormat.None, pp.MultiSampleCount, RenderTargetUsage.DiscardContents);
+			original = new RenderTarget2D(GraphicsDevice, Game1.width, Game1.height, false, SurfaceFormat.Color, DepthFormat.None, pp.MultiSampleCount, RenderTargetUsage.DiscardContents);
 			nearest = new RenderTarget2D(GraphicsDevice, largestScale.X, largestScale.Y, false, SurfaceFormat.Color, DepthFormat.None, pp.MultiSampleCount, RenderTargetUsage.DiscardContents);
-			bilinear = new RenderTarget2D(GraphicsDevice, 1920, 1080, false, SurfaceFormat.Color, DepthFormat.None, pp.MultiSampleCount, RenderTargetUsage.DiscardContents);
+			bilinear = new RenderTarget2D(GraphicsDevice, GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width, GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height, false, SurfaceFormat.Color, DepthFormat.None, pp.MultiSampleCount, RenderTargetUsage.DiscardContents);
+			//nearest = bilinear = original;
 			//currentScreen = new OldMap(GraphicsDevice, Content, 16, 16, 10, 10);
-			//currentScreen = new Battle(Content, original, GraphicsDevice, pp);
-			currentScreen = new Map(GraphicsDevice, Content, 48, 48, 10, 10);
+			currentScreen = new Battle(Content, original, GraphicsDevice, pp);
+			//currentScreen = new Map(GraphicsDevice, Content, 48, 48, 10, 10);
 			sb = new SpriteBatch(GraphicsDevice);
 			render = new SpriteBatch(GraphicsDevice);
 			//currentScreen = new TestScreen(Content);
@@ -143,7 +149,7 @@ namespace RPG
 		/// <param name="gameTime">Provides a snapshot of timing values.</param>
 		protected override void Draw(GameTime gameTime)
 		{
-			GraphicsDevice.SetRenderTarget(null);
+			GraphicsDevice.SetRenderTarget(original);
 			//GraphicsDevice.Clear(Color.CornflowerBlue);
 			GraphicsDevice.SamplerStates[0] = SamplerState.PointWrap;
 
@@ -161,7 +167,7 @@ namespace RPG
 
 			//sb.End();
 
-			//myScale();
+			myScale();
 			//scaleToDisplay();
 
 			// TODO: Add your drawing code here
@@ -174,7 +180,7 @@ namespace RPG
 		{
 			Rectangle dst;
 			float outputAspect = manager.PreferredBackBufferWidth / (float)manager.PreferredBackBufferHeight;
-			float preferredAspect = 400 / (float)240;
+			float preferredAspect = Game1.width / (float)Game1.height;
 			if (outputAspect <= preferredAspect)
 			{
 				// output is taller than it is wider, bars on top/bottom
@@ -212,7 +218,7 @@ namespace RPG
 		private void scaleToDisplay()
 		{
 			float outputAspect = Window.ClientBounds.Width / (float)Window.ClientBounds.Height;
-			float preferredAspect = 400 / (float)240;
+			float preferredAspect = width / (float)height;
 			Rectangle dst;
 			if (outputAspect <= preferredAspect)
 			{
