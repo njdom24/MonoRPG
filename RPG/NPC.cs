@@ -267,8 +267,6 @@ namespace RPG
 		{
 			if (!speaking)
 			{
-				Console.WriteLine("Gimme steps: " + curStep);
-				Console.WriteLine("Backwards: " + backwards);
 				if (steps > 0)
 				{
 					//Vector2 tempPos = new Vector2((body.Position.X), (int)Math.Round(body.Position.Y));
@@ -276,7 +274,6 @@ namespace RPG
 
 					if (!isMoving)
 					{
-						Console.WriteLine("not moving");
 						moveTimer += gameTime.ElapsedGameTime.TotalSeconds;
 						if (moveTimer >= 1)
 						{
@@ -332,7 +329,6 @@ namespace RPG
 									}
 									else if (touchingLeft && !tempStopped)
 									{
-										Console.WriteLine("Fuckin with that velocity");
 										tempStopped = true;
 										body.LinearVelocity = Vector2.Zero;
 									}
@@ -409,7 +405,6 @@ namespace RPG
 
 		private void EndContactHandler(Fixture fixtureA, Fixture fixtureB)//unfinished
 		{
-			Console.WriteLine("end contact");
 			NPC tempNPC;
 			if (fixtureA.Body.UserData is NPC)
 				tempNPC = (NPC)fixtureA.Body.UserData;
@@ -423,7 +418,6 @@ namespace RPG
 
 		public void ReapplyVelocity()
 		{
-			Console.WriteLine("Reapplying velocity");
 			touchingPlayer = false;
 			touchingUp = false;
 			touchingDown = false;

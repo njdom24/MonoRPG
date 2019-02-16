@@ -62,7 +62,7 @@ namespace RPG
 		private int playerMove;
 		private int enemyMove;
 
-		private enum Phase {IntroPhase, PlayerPhase, SelectTarget, EnemyPhase, AttackPhase, AnimPhase, PlayerDeathPhase, EnemyDeathPhase, YouWin};
+		private enum Phase {IntroPhase, PlayerPhase, SelectTarget, EnemyPhase, AttackPhase, AnimPhase, BlinkPhase, PlayerDeathPhase, EnemyDeathPhase, YouWin};
 		private Phase curPhase;
 		private double turnWaiter;
 
@@ -70,6 +70,8 @@ namespace RPG
 		private Texture2D magic;
 		private double animTimer;
 		private double darkenTimer;
+		private bool enemyDraw;
+		private byte flashCount;
 
 		private bool deathMessageDisplayed;
 
@@ -90,8 +92,11 @@ namespace RPG
 			options = new Icons(contentManager);
 			blackRect = new Texture2D(graphicsDevice, 1, 1);
 			blackRect.SetData(new Color[] { Color.Black });
+
 			travis = new Battler(contentManager, world);
 			knight = new Enemy(contentManager, world, secondsPerBeat, threshHold);
+			enemyDraw = true;
+
 			MultiSampleCount = pp.MultiSampleCount;
 			Texture2D palette = contentManager.Load<Texture2D>("Battle/003Palette");
 			effect.Parameters["palette"].SetValue(palette);
@@ -192,16 +197,15 @@ namespace RPG
 			DrawBackground(sb);
 			DrawHud(sb);
 			if(flasher == null)
-			{
 				sb.Begin(samplerState: SamplerState.PointClamp);
-				knight.Draw(sb, bgTimer, offsetHeightTop, offsetHeightBottom);
-			}
 			else
 			{
 				sb.Begin(samplerState: SamplerState.PointClamp, sortMode: SpriteSortMode.Immediate);
 				flash.Techniques[0].Passes[0].Apply();
-				knight.Draw(sb, bgTimer, offsetHeightTop, offsetHeightBottom);
 			}
+
+			if(enemyDraw)
+				knight.Draw(sb, bgTimer, offsetHeightTop, offsetHeightBottom);
 			sb.End();
 			sb.Begin(samplerState: SamplerState.PointWrap);
 
@@ -449,18 +453,19 @@ namespace RPG
 					break;
 				case Phase.AnimPhase:
 					Console.WriteLine("anim");
-					
-					
 
 					if (magicAnim.getFrame() == magicAnim.frameCount)
 					{
 						Console.WriteLine("Skadoosh");
 						if (darkenTimer < 1)
 							darkenTimer += gameTime.ElapsedGameTime.TotalSeconds * 4;
-						else
+						else//end phase
 						{
-							curPhase = Phase.AttackPhase;
+							//curPhase = Phase.AttackPhase;
+							curPhase = Phase.BlinkPhase;
+							enemyDraw = false;
 							magicAnim.resetStart();
+							animTimer = 0;
 						}
 					}
 					else
@@ -475,6 +480,29 @@ namespace RPG
 							animTimer -= 0.05;
 							magicAnim.advanceFrame();
 						}
+					}
+					break;
+				case Phase.BlinkPhase:
+					animTimer += gameTime.ElapsedGameTime.TotalSeconds;
+
+					if(animTimer > 0.07)
+					{
+						flashCount++;
+						animTimer -= 0.07;
+						if(flashCount < 11)
+							enemyDraw = !enemyDraw;
+					}
+
+					if (flashCount == 11)
+					{
+						//flashCount = 0;
+						enemyDraw = true;
+						//curPhase = Phase.AttackPhase;
+					}
+					else if(flashCount == 17)
+					{
+						flashCount = 0;
+						curPhase = Phase.AttackPhase;
 					}
 					break;
 				default:

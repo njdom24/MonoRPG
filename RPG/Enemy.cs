@@ -168,6 +168,11 @@ namespace RPG
 			body.SetTransform(defaultPos, 0);
 		}
 
+		public void DecreaseHealth(int amt)//animates a number of decreased health
+		{
+			health -= amt;
+		}
+
 		private bool FinishCombo()
 		{
 			//visibility = new bool[16];
@@ -238,8 +243,6 @@ namespace RPG
 				//moveDuration = moveDuration / 1.2;
 				moveTimer = moveDuration;
 			}
-
-			
 
 			return false;
 		}

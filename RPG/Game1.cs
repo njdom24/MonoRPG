@@ -77,8 +77,9 @@ namespace RPG
 			bilinear = new RenderTarget2D(GraphicsDevice, GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width, GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height, false, SurfaceFormat.Color, DepthFormat.None, pp.MultiSampleCount, RenderTargetUsage.DiscardContents);
 			//nearest = bilinear = original;
 			//currentScreen = new OldMap(GraphicsDevice, Content, 16, 16, 10, 10);
-			currentScreen = new Battle(Content, original, GraphicsDevice, pp);
-			//currentScreen = new Map(GraphicsDevice, Content, 48, 48, 10, 10);
+			//currentScreen = new Battle(Content, original, GraphicsDevice, pp);
+			currentScreen = new Map(GraphicsDevice, Content, 48, 48, 10, 10);
+			//currentScreen = new Environment();
 			sb = new SpriteBatch(GraphicsDevice);
 			render = new SpriteBatch(GraphicsDevice);
 			//currentScreen = new TestScreen(Content);

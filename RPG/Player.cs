@@ -106,7 +106,6 @@ namespace RPG
 
 			posOffY = (int)(-height + ConvertUnits.ToDisplayUnits(bodyHeight)/2);
 			posOffX = (int)(-ConvertUnits.ToDisplayUnits(bodyWidth)/2);
-			Console.WriteLine("Kill me: " + posOffX);
 		}
 		public override string ToString()
 		{
@@ -160,7 +159,6 @@ namespace RPG
 						//Conditions to stop running
 						if (!startedRunning && body.LinearVelocity.LengthSquared() < 0.1f)
 						{
-							Console.WriteLine("Weird stopping mechanism");
 							running = false;
 							runOffset = 0;
 							animSpeed = 0.3f;

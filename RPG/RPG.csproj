@@ -69,6 +69,7 @@
     <Compile Include="Combatant.cs" />
     <Compile Include="DebugViewXNA.cs" />
     <Compile Include="Enemy.cs" />
+    <Compile Include="Environment.cs" />
     <Compile Include="Game1.cs" />
     <Compile Include="Menu.cs" />
     <Compile Include="OldHud.cs" />
@@ -95,6 +96,7 @@
     <Compile Include="Selector.cs" />
     <Compile Include="TestScreen.cs" />
     <Compile Include="Text.cs" />
+    <Compile Include="Typing.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="FarseerPhysics MonoGame, Version=3.5.0.40766, Culture=neutral, processorArchitecture=MSIL">

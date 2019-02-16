@@ -128,7 +128,6 @@ namespace RPG
 		
 		private void EndContactHandler(Contact contact)//unfinished
 		{
-			Console.WriteLine("end contact");
 			NPC tempNPC;
 			if (contact.FixtureA.Body.UserData is NPC)
 				tempNPC = (NPC)contact.FixtureA.Body.UserData;
@@ -373,7 +372,6 @@ namespace RPG
 				s = s.Substring(s.IndexOf("</object>") + 9);
 			}
 			Body tempBody;
-			Console.WriteLine(s);
 			foreach (List<Vector2> list in myList)
 			{
 				tempBody = BodyFactory.CreatePolygon(world, new FarseerPhysics.Common.Vertices(list), 0.1f);
